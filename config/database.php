@@ -100,7 +100,7 @@ return [
             'password' => env('DB_ROOT_PASSWORD'),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
+            'prefix' => env('DB_ROOT_PREFIX'),
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,

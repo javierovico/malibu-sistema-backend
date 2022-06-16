@@ -231,5 +231,6 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
     ],
+    'login_api_key' => env('LOGIN_API_KEY'),
 
 ];
