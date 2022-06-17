@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Rol;
 use App\Models\Usuario;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
@@ -41,7 +42,9 @@ class Inicializar extends Command
     {
         Artisan::call('migrate:reset');
         Artisan::call('migrate');
-        Usuario::nuevoUsuario('user1','user1', 'user1');
+        Rol::inicializar();
+        $usuario = Usuario::nuevoUsuario('user1','user1', 'user1');
+
         return 0;
     }
 }
