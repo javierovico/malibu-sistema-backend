@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Exceptions\ExceptionSystem;
+use App\Models\Producto;
 use App\Models\Rol;
 use App\Models\Usuario;
 use Illuminate\Console\Command;
@@ -37,6 +39,7 @@ class Inicializar extends Command
      * Execute the console command.
      *
      * @return int
+     * @throws ExceptionSystem
      */
     public function handle()
     {
@@ -44,7 +47,12 @@ class Inicializar extends Command
         Artisan::call('migrate');
         Rol::inicializar();
         $usuario = Usuario::nuevoUsuario('user1','user1', 'user1');
-
+        $usuario->asignarRol(Rol::ROL_ADMIN_PRODUCTOS);
+        $usuario->asignarRol(Rol::ROL_VISOR_INGRESOS);
+        $usuario2 = Usuario::nuevoUsuario('user2','user2', 'user2');
+        $usuario2->asignarRol(Rol::ROL_VISOR_INGRESOS);
+//        Producto::inicializar();
+        Producto::factory()->count(1500)->create();
         return 0;
     }
 }

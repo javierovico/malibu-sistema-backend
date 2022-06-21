@@ -37,7 +37,10 @@ class UserController extends Controller
 
     public function getUser(Request $request)
     {
+        /** @var Usuario $user */
+        $user = $request->user();
+        $user->load('roles');
         return self::respuestaDTOSimple('getuser', 'Usuario obtenido desde token', 'getUser',
-            ['usuario' => $request->user()]);
+            ['usuario' => $user]);
     }
 }

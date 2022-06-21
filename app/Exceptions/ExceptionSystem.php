@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 class ExceptionSystem extends \Exception
@@ -22,6 +23,27 @@ class ExceptionSystem extends \Exception
         return $exception;
     }
 
+    public static function createFromOther(\Throwable $e): self
+    {
+        return self::createException($e->getMessage(),$e->getFile(),substr($e->getMessage(),0,300));
+    }
+
+    public static function createFromValidationException(ValidationException $e): self
+    {
+        $exeption = self::createException($e->getMessage(), 'error', 'Error generado con los datos de entrada', Response::HTTP_UNPROCESSABLE_ENTITY);
+        $exeption->errors = $e->errors();
+        return $exeption;
+    }
+
+    public static function createExceptionInput($keyInput, $errors): self
+    {
+        $exeption = self::createException("The given data was invalid.", 'error', 'Error con los siguientes datos', Response::HTTP_UNPROCESSABLE_ENTITY);
+        $exeption->errors = [
+            $keyInput => $errors
+        ];
+        return $exeption;
+    }
+
     /**
      * Render the exception into an HTTP response.
      *
@@ -30,16 +52,15 @@ class ExceptionSystem extends \Exception
      */
     public function render(Request $request): \Illuminate\Http\Response
     {
-        if ($this->errors) {
-            return Controller::respuestaDTOErrorInput($this->getMessage(), $this->errors);
-        } else {
-            return Controller::respuestaDTO(
-                $this->titulo,
-                $this->getMessage(),
-                $this->codigo,
-                ['class' => get_class($this)],
-                $this->statusHTTP
-            );
-        }
+        return Controller::respuestaDTO(
+            $this->titulo,
+            $this->getMessage(),
+            $this->codigo,
+            [
+                'class' => get_class($this),
+                'errors' => $this->errors?:[],
+            ],
+            $this->statusHTTP
+        );
     }
 }

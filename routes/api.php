@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\AuthMiddleware;
 use Illuminate\Http\Request;
@@ -16,11 +17,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('auth')->group(function(){
-    Route::post('login', [UserController::class, 'login']);
-    Route::middleware([AuthMiddleware::class])->group(function () {
-        Route::get('/user', [UserController::class, 'getUser']);
-        Route::get('/logout', [UserController::class, 'logout']);
-    });
 
+Route::middleware([AuthMiddleware::class])->group(function () {
+    Route::prefix('auth')->group(function(){
+        Route::post('login', [UserController::class, 'login'])->withoutMiddleware(AuthMiddleware::class);
+        Route::middleware([AuthMiddleware::class])->group(function () {
+            Route::get('/user', [UserController::class, 'getUser']);
+            Route::get('/logout', [UserController::class, 'logout']);
+        });
+    });
+    Route::prefix('producto')->group(function(){
+        Route::get('',[ProductoController::class, 'getProductos']);
+    });
 });

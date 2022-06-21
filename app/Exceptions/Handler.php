@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
+use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -36,6 +38,24 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+//        $this->renderable(function (ValidationException $e, $request) {
+//            return response([
+//                'e' => get_class($e),
+//                'validation' => true
+//            ]);
+//            return response()->view('errors.invalid-order', [], 500);
+//        });
+        $this->renderable(function (ExceptionSystem $e, $request) {
+            return $e->render($request);
+        });
+        $this->renderable(function (Throwable $e, $request) {
+            if ($e instanceof ValidationException) {
+                $exceptoinCambiada = ExceptionSystem::createFromValidationException($e);
+            } else {
+                $exceptoinCambiada = ExceptionSystem::createFromOther($e);
+            }
+            return $exceptoinCambiada->render($request);
         });
     }
 }
