@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArchivoController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\AuthMiddleware;
@@ -28,5 +29,16 @@ Route::middleware([AuthMiddleware::class])->group(function () {
     });
     Route::prefix('producto')->group(function(){
         Route::get('',[ProductoController::class, 'getProductos']);
+        Route::prefix('{Producto}')->group(function(){
+            Route::get('',[ProductoController::class,'getProducto']);
+            Route::put('',[ProductoController::class,'updateProducto']);
+        });
+    });
+    Route::prefix('archivo')->group(function(){
+        Route::prefix('imagen')->group(function(){
+            Route::prefix('{archivoPath}')->group(function(){
+                Route::get('',[ArchivoController::class,'getImagen'])->withoutMiddleware(AuthMiddleware::class);
+            });
+        });
     });
 });

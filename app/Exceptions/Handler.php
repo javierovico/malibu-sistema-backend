@@ -50,12 +50,7 @@ class Handler extends ExceptionHandler
             return $e->render($request);
         });
         $this->renderable(function (Throwable $e, $request) {
-            if ($e instanceof ValidationException) {
-                $exceptoinCambiada = ExceptionSystem::createFromValidationException($e);
-            } else {
-                $exceptoinCambiada = ExceptionSystem::createFromOther($e);
-            }
-            return $exceptoinCambiada->render($request);
+            return ExceptionSystem::createFromOther($e)->render($request);
         });
     }
 }

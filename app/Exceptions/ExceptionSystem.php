@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ExceptionSystem extends \Exception
 {
@@ -25,7 +27,21 @@ class ExceptionSystem extends \Exception
 
     public static function createFromOther(\Throwable $e): self
     {
-        return self::createException($e->getMessage(),$e->getFile(),substr($e->getMessage(),0,300));
+        if ($e instanceof ValidationException) {
+            return ExceptionSystem::createFromValidationException($e);
+        } else if ($e instanceof HttpExceptionInterface) {
+            $titulo = "Error en la peticion";
+            $mensaje = $e->getMessage()?:"Error HTTP: " . $e->getStatusCode();
+            switch ($e->getStatusCode()) {
+                case "404":
+                    $mensaje = "La pagina solicitada no existe";
+                    $titulo = "Pagina no encontrada";
+                    break;
+            }
+            return self::createException($mensaje,"http".$e->getStatusCode(), $titulo, $e->getStatusCode());
+        } else {
+            return self::createException($e->getMessage(),$e->getFile(),substr($e->getMessage(),0,300));
+        }
     }
 
     public static function createFromValidationException(ValidationException $e): self
