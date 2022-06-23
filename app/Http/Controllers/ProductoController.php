@@ -42,8 +42,29 @@ class ProductoController extends Controller
         ]);
     }
 
-    public function updateProducto(Request $request, Producto $producto)
+    public function addProducto(Request $request)
     {
+        $request->validate([
+            'costo' => 'required',
+            'precio' => 'required',
+            'codigo' => 'required',
+            'nombre' => 'required',
+        ]);
+        $producto = $this->updateProducto($request, new Producto(), true);
+        return self::respuestaDTOSimple('addProducto','Crea nuevo producto','addProducto',[
+            'producto' => $producto
+        ]);
+    }
+
+    public function updateProducto(Request $request, Producto $producto, $pasaMano = false)
+    {
+        $request->validate([
+            'costo' => 'numeric|min:1',
+            'precio' => 'numeric|min:1',
+            'codigo' => 'max:100',
+            'nombre' => 'max:200',
+            'imagen.url' => 'regex:#^data:image/\w+;base64,#i|nullable'
+        ]);
         if ($codigo = $request->get('codigo')) {
             $producto->codigo = $codigo;
         }
@@ -59,11 +80,24 @@ class ProductoController extends Controller
         if ($precio = $request->get('precio')) {
             $producto->precio = $precio;
         }
-        if ($url = $request->get('url')) {
+        if (($imagen = $request->get('imagen')) && $url = is_array($imagen) && array_key_exists('url',$imagen) ? $imagen['url'] : null) {
             $producto->asociarImagen64($url);
         }
         $producto->save();
-        return self::respuestaDTOSimple('getProducto','Obtiene un producto por id','getProducto',[
+        $producto->load(Producto::RELACION_IMAGEN);
+        if ($pasaMano) {
+            return $producto;
+        } else {
+            return self::respuestaDTOSimple('getProducto','Obtiene un producto por id','getProducto',[
+                'producto' => $producto
+            ]);
+        }
+    }
+
+    public function deleteProducto(Request $request, Producto $producto)
+    {
+        $producto->delete();
+        return self::respuestaDTOSimple('deleteProducto','Borra un producto','deleteProducto',[
             'producto' => $producto
         ]);
     }

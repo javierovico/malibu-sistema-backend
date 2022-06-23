@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property string url
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Producto extends ModelRoot
 {
+    use SoftDeletes;
     const tableName = 'productos';
     protected $table = self::tableName;
     protected $primaryKey = self::COLUMNA_ID;
@@ -39,6 +41,10 @@ class Producto extends ModelRoot
 
     protected $appends = [
         self::COLUMNA_VIRTUAL_URL
+    ];
+
+    protected $attributes = [
+        self::COLUMNA_DESCRIPCION => ''
     ];
 
     protected $guarded = [];

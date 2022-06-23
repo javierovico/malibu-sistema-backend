@@ -24,6 +24,7 @@ class CreateProductosTable extends Migration
             $table->unsignedInteger(Producto::COLUMNA_PRECIO);
             $table->unsignedInteger(Producto::COLUMNA_COSTO);
             $table->string(Producto::COLUMNA_S3_KEY,250)->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

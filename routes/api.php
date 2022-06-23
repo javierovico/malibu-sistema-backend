@@ -29,9 +29,11 @@ Route::middleware([AuthMiddleware::class])->group(function () {
     });
     Route::prefix('producto')->group(function(){
         Route::get('',[ProductoController::class, 'getProductos']);
+        Route::post('',[ProductoController::class, 'addProducto']);
         Route::prefix('{Producto}')->group(function(){
             Route::get('',[ProductoController::class,'getProducto']);
             Route::put('',[ProductoController::class,'updateProducto']);
+            Route::delete('',[ProductoController::class,'deleteProducto']);
         });
     });
     Route::prefix('archivo')->group(function(){
