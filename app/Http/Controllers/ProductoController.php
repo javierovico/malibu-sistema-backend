@@ -130,7 +130,7 @@ class ProductoController extends Controller
         }
         $producto->save();
         //Esta despues porque se requiere que el producto exista
-        if ($combosIds = $request->get('combos')) {
+        if (is_array($combosIds = $request->get('combos'))) {
             $producto->productoCombos()->sync($combosIds);
         }
         $producto->load(self::RELACIONES_BASICAS);
