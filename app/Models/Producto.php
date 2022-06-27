@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property string url
- * @see Producto::getUrlAttribute()
- * @see Producto::setUrlAttribute()
  *
  * @property mixed $codigo
  * @property int costo
@@ -27,7 +26,9 @@ class Producto extends ModelRoot
     protected $primaryKey = self::COLUMNA_ID;
 
     const COLUMNA_ID = 'id';
+    const COLUMNA_TIPO_PRODUCTO = 'tipo_producto_id';
     const COLUMNA_CODIGO = 'codigo';
+    const COLUMNA_STOCK = 'stock';
     const COLUMNA_NOMBRE = 'nombre';
     const COLUMNA_DESCRIPCION = 'descripcion';
     const COLUMNA_PRECIO = 'precio';
@@ -35,39 +36,70 @@ class Producto extends ModelRoot
     const COLUMNA_S3_KEY = 's3_key';
     const COLUMNA_ARCHIVO_ID = 'archivo_id';
 
-    const COLUMNA_VIRTUAL_URL = 'url';
 
     const RELACION_IMAGEN = 'imagen';
+    const RELACION_TIPO_PRODUCTO = 'tipoProducto';
+    const RELACION_PRODUCTO_COMBOS = 'productoCombos';
 
     protected $appends = [
-        self::COLUMNA_VIRTUAL_URL
+
     ];
 
     protected $attributes = [
-        self::COLUMNA_DESCRIPCION => ''
+        self::COLUMNA_DESCRIPCION => '',
+        self::COLUMNA_STOCK => '1',
     ];
 
     protected $guarded = [];
+
+    /**
+     * Retorna una query que filtra por tipo de producto code
+     * @param string $code
+     * @param Builder|null $queryActual
+     * @return Builder
+     */
+    public function getQueryByTipoProductocode(string $code, ?Builder $queryActual = null): Builder
+    {
+        if (!$queryActual) {
+            $queryActual = Producto::query();
+        }
+        return $queryActual->whereHas(Producto::RELACION_TIPO_PRODUCTO,fn(Builder $b)=>$b->where(TipoProducto::COLUMNA_CODE,$code));
+    }
+
+    public static function getQueryProductoCombo(?Builder $queryActual = null): Builder
+    {
+        return self::getQueryByTipoProductocode(TipoProducto::TIPO_PRODUCTO_COMBO, $queryActual);
+    }
+
+    public static function getQueryProductoSimple(?Builder $queryActual = null): Builder
+    {
+        return self::getQueryByTipoProductocode(TipoProducto::TIPO_PRODUCTO_SIMPLE, $queryActual);
+    }
 
     public function imagen(): BelongsTo
     {
         return $this->belongsTo(Archivo::class, self::COLUMNA_ARCHIVO_ID);
     }
 
-    public function getUrlAttribute(): string
+    public function tipoProducto(): BelongsTo
     {
-        return "https://joeschmoe.io/api/v1/random";
+        return $this->belongsTo(TipoProducto::class, self::COLUMNA_TIPO_PRODUCTO);
     }
 
-    public function setUrlAttribute($url)
+    public function productoCombos(): BelongsToMany
     {
-
+        return $this->belongsToMany(Producto::class, ComboProducto::tableName, ComboProducto::COLUMNA_PRODUCTO_ID, ComboProducto::COLUMNA_COMBO_ID);
     }
 
     public function asociarImagen64($url)
     {
         $archivoNuevo = Archivo::nuevoArchivo(base64_decode(preg_replace('#^data:image/\w+;base64,#i', '',$url)), ($this->nombre?:'sinNombre') . '.jpg');
         $this->imagen()->associate($archivoNuevo);
+    }
+
+    public function borrarImagen()
+    {
+        $this->imagen()->dissociate();
     }
 
 }

@@ -17,7 +17,7 @@ function paginate($builder, Request $request, bool $sort= true){
         'sortDesc' => 'in:asc,desc',
     ]);
     if($request->sortBy && $sort){
-        $builder->orderBy($request->get('sortBy','id'),$request->get('sortDesc','desc'));
+        $builder->orderBy($request->get('sortBy','id'),$request->get('sortDesc','asc'));
     }
     $builder->with($request->get('with',[]));
     $builder->withCount($request->get('withCount',[]));
