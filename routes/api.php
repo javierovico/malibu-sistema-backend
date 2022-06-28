@@ -1,5 +1,6 @@
 <?php
 
+use App\Events\MessageEvent;
 use App\Http\Controllers\ArchivoController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\UserController;
@@ -43,4 +44,19 @@ Route::middleware([AuthMiddleware::class])->group(function () {
             });
         });
     });
+});
+
+Route::any('new-message', function (Request $request) {
+    $request->validate([
+        'user' => 'required',
+        'message' => 'required',
+        'private' => 'in:1,0'
+    ]);
+    event(new MessageEvent($request->get('user'), $request->get('message'),$request->get('private')));
+    return 'ok';
+});
+
+Route::any('new-privado', function (Request $request) {
+    event(new MessageEvent("aldo", "chau", true));
+    return 'ok';
 });
