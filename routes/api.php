@@ -2,6 +2,8 @@
 
 use App\Events\MessageEvent;
 use App\Http\Controllers\ArchivoController;
+use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\AuthMiddleware;
@@ -28,6 +30,7 @@ Route::middleware([AuthMiddleware::class])->group(function () {
             Route::get('/logout', [UserController::class, 'logout']);
         });
     });
+    //TODO: agregar los middlewares de update/add/remove producto
     Route::prefix('producto')->group(function(){
         Route::get('',[ProductoController::class, 'getProductos']);
         Route::post('',[ProductoController::class, 'addProducto']);
@@ -36,6 +39,12 @@ Route::middleware([AuthMiddleware::class])->group(function () {
             Route::put('',[ProductoController::class,'updateProducto']);
             Route::delete('',[ProductoController::class,'deleteProducto']);
         });
+    });
+    Route::prefix('mesa')->group(function(){
+        Route::get('',[CarritoController::class,'getStatusMesas']);
+    });
+    Route::prefix('cliente')->group(function(){
+        Route::get('',[ClienteController::class,'getClientes']);
     });
     Route::prefix('archivo')->group(function(){
         Route::prefix('imagen')->group(function(){

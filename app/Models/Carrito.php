@@ -17,5 +17,7 @@ class Carrito extends ModelRoot
     const COLUMNA_PAGADO = 'pagado';
     const COLUMNA_MESA_ID = 'mesa_id';
     const COLUMNA_IS_DELIVERY = 'is_delivery';
+    const COLUMNA_STATUS = 'status';
 
+    const ESTADO_FINALIZADO = 'finalizado';
 }

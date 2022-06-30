@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Exceptions\ExceptionSystem;
+use App\Models\Cliente;
+use App\Models\Mesa;
 use App\Models\Producto;
 use App\Models\Rol;
 use App\Models\TipoProducto;
@@ -52,6 +54,8 @@ class Inicializar extends Command
         $usuario = Usuario::nuevoUsuario('user1','user1', 'user1');
         $usuario->asignarRol(Rol::ROL_ADMIN_PRODUCTOS);
         $usuario->asignarRol(Rol::ROL_VISOR_INGRESOS);
+        $usuario = Usuario::nuevoUsuario('operador','operador', 'operador');
+        $usuario->asignarRol(Rol::ROL_OPERADOR);
         $usuario2 = Usuario::nuevoUsuario('user2','user2', 'user2');
         $usuario2->asignarRol(Rol::ROL_VISOR_INGRESOS);
         Artisan::call("db:seed");
@@ -75,7 +79,8 @@ class Inicializar extends Command
                 ->each(fn (Producto $pSimple) => $pC->productoCombos()->attach($pSimple))
             )
         ;
-
+        Mesa::factory()->count(20)->create();
+        Cliente::factory()->count(1500)->create();
         return 0;
     }
 }

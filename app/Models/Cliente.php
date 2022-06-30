@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cliente extends ModelRoot
@@ -16,8 +17,16 @@ class Cliente extends ModelRoot
     const COLUMNA_ID = 'id';
     const COLUMNA_IMAGEN_ID = 'imagen_id';
     const COLUMNA_NOMBRE = 'nombre';
+    const COLUMNA_RUC = 'ruc';
     const COLUMNA_TELEFONO = 'telefono';
     const COLUMNA_CIUDAD = 'ciudad';
     const COLUMNA_BARRIO = 'barrio';
+
+    const RELACION_IMAGEN = 'imagen';
+
+    public function imagen(): BelongsTo
+    {
+        return $this->belongsTo(Archivo::class, self::COLUMNA_IMAGEN_ID);
+    }
 
 }

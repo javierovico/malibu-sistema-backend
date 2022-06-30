@@ -19,6 +19,7 @@ class CreateClientesTable extends Migration
             $table->id(Cliente::COLUMNA_ID);
             $table->foreignId(Cliente::COLUMNA_IMAGEN_ID)->nullable()->references(Archivo::COLUMNA_ID)->on(Archivo::tableName)->nullOnDelete();
             $table->string(Cliente::COLUMNA_NOMBRE, 100);
+            $table->string(Cliente::COLUMNA_RUC, 30)->nullable();
             $table->string(Cliente::COLUMNA_TELEFONO, 20)->nullable()->unique();
             $table->string(Cliente::COLUMNA_CIUDAD, 50)->nullable();
             $table->string(Cliente::COLUMNA_BARRIO, 50)->nullable();

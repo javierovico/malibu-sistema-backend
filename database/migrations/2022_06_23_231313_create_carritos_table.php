@@ -20,6 +20,7 @@ class CreateCarritosTable extends Migration
             $table->id(Carrito::COLUMNA_ID);
             $table->foreignId(Carrito::COLUMNA_CLIENTE_ID)->nullable()->references(Cliente::COLUMNA_ID)->on(Cliente::tableName)->nullOnDelete();
             $table->foreignId(Carrito::COLUMNA_MESA_ID)->nullable()->references(Mesa::COLUMNA_ID)->on(Mesa::tableName)->nullOnDelete();
+            $table->string(Carrito::COLUMNA_STATUS, 30);
             $table->dateTime(Carrito::COLUMNA_FECHA_CREACION);
             $table->boolean(Carrito::COLUMNA_PAGADO);
             $table->boolean(Carrito::COLUMNA_IS_DELIVERY);

@@ -10,12 +10,19 @@ use Illuminate\Http\Request;
  */
 function paginate($builder, Request $request, bool $sort= true){
     $request->validate([
+        'sortByListPriority' => 'json',
         'perPage' => 'integer|min:1|max:1000',
         'page' => 'integer|min:1',
         'descargar' => 'in:true,false,1,0',
         'sortBy' => '',
         'sortDesc' => 'in:asc,desc',
     ]);
+    //ordenamiento
+    if (($ordenes = $request->get('sortByListPriority')) && ($ordenes = json_decode($ordenes,true)) && is_array($ordenes)) {
+        foreach ($ordenes as $key=>$value) {
+            $builder->orderBy($key, $value == 'descend' ? 'desc' : 'asc');
+        }
+    }
     if($request->sortBy && $sort){
         $builder->orderBy($request->get('sortBy','id'),$request->get('sortDesc','asc'));
     }
