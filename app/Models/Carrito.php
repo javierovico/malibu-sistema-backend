@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property mixed $fecha_creacion
+ * @property mixed $status
+ * @property Mesa $mesa
  * @see Carrito::setFechaCreacionAttribute()
  * @see Carrito::getFechaCreacionAttribute()
  */
@@ -20,6 +22,7 @@ class Carrito extends ModelRoot
 
     const COLUMNA_ID = 'id';
     const COLUMNA_CLIENTE_ID = 'cliente_id';
+    const COLUMNA_MOZO_ID = 'mozo_id';
     const COLUMNA_FECHA_CREACION = 'fecha_creacion';
     const COLUMNA_PAGADO = 'pagado';
     const COLUMNA_MESA_ID = 'mesa_id';
@@ -42,6 +45,7 @@ class Carrito extends ModelRoot
 
     const RELACION_MESA = 'mesa';
     const RELACION_CLIENTE = 'cliente';
+    const RELACION_MOZO = 'mozo';
 
     public function mesa(): BelongsTo
     {
@@ -51,6 +55,11 @@ class Carrito extends ModelRoot
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class, self::COLUMNA_CLIENTE_ID, Cliente::COLUMNA_ID);
+    }
+
+    public function mozo(): BelongsTo
+    {
+        return $this->belongsTo(Usuario::class, self::COLUMNA_MOZO_ID, Usuario::COLUMNA_ID);
     }
 
     public function setFechaCreacionAttribute($att)
@@ -70,4 +79,5 @@ class Carrito extends ModelRoot
             return null;
         }
     }
+
 }

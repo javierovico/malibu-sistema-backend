@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MesaAsignacionEvent;
 use App\Exceptions\ExceptionSystem;
 use App\Models\Carrito;
 use App\Models\Cliente;
@@ -16,10 +17,15 @@ class CarritoController extends Controller
         $request->validate([
             'withCarrito' => 'in:1,0',
             'activo' => 'in:1,0',
+            'withMozo' => 'in:1,0'
         ]);
         $mesasQuery = Mesa::query();
         if ($request->get('withCarrito')) {
-            $mesasQuery->with(Mesa::RELACION_CARRITO_ACTIVO);
+            if ($request->get('withMozo')) {
+                $mesasQuery->with(Mesa::RELACION_CARRITO_ACTIVO . '.' . Carrito::RELACION_MOZO);
+            } else {
+                $mesasQuery->with(Mesa::RELACION_CARRITO_ACTIVO);
+            }
         }
         if (null !== ($activo = $request->get('activo'))) {
             $mesasQuery->where(Mesa::COLUMNA_ACTIVO, '=',$activo?'1':'0');
@@ -40,7 +46,8 @@ class CarritoController extends Controller
         }
         /** @var Cliente $cliente */
         $cliente = ($clienteId = $request->get('clienteId')) ? Cliente::find($clienteId) : null;
-        $mesa->crearCarrito($cliente);
+        $carrito = $mesa->crearCarrito($cliente,$request->user());
+        MesaAsignacionEvent::dispatch($mesa);
         return self::respuestaDTOSimple('asignarMesa','Asigna una mesa a un cliente','asignarMesa');
     }
 }

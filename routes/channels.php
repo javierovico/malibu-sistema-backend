@@ -21,3 +21,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('usuario.{userId}',function (Usuario $user, $id){
     return $id == $user->id;
 });
+
+Broadcast::channel('mesa',function (Usuario $user){
+    return true;
+});

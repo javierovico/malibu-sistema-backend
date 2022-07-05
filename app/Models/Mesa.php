@@ -40,14 +40,16 @@ class Mesa extends ModelRoot
             ->latestOfMany(Carrito::COLUMNA_ID);
     }
 
-    public function crearCarrito(?Cliente $cliente)
+    public function crearCarrito(?Cliente $cliente, Usuario $user): Carrito
     {
         $carrito = new Carrito();
         $carrito->fecha_creacion = CarbonImmutable::now();
+        $carrito->mozo()->associate($user);
         $carrito->mesa()->associate($this);
         if ($cliente) {
             $carrito->cliente()->associate($cliente);
         }
         $carrito->save();
+        return $carrito;
     }
 }
