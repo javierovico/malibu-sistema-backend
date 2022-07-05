@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
+    const RELACIONES_BASICAS = [
+        Cliente::RELACION_IMAGEN,
+    ];
+
     public function getClientes(Request $request)
     {
         $request->validate([
@@ -18,6 +22,7 @@ class ClienteController extends Controller
             'ciudad' => ''
         ]);
         $query = Cliente::query();
+        $query->with(self::RELACIONES_BASICAS);
         if ($id = $request->get('id')) {
             $query->where(Cliente::COLUMNA_ID,$id);
         }
@@ -34,9 +39,72 @@ class ClienteController extends Controller
             $query->where(Cliente::COLUMNA_BARRIO,'like', '%' . $barrio . '%');
         }
         if ($ciudad = $request->get('ciudad')) {
-            $query->where(Cliente::COLUMNA_CIUDAD,'like', '%' . $ciudad . '%');
+            if (is_array($ciudad)) {
+                $query->whereIn(Cliente::COLUMNA_CIUDAD,$ciudad);
+            } else {
+                $query->where(Cliente::COLUMNA_CIUDAD,'like', '%' . $ciudad . '%');
+            }
         }
 
         return paginate($query, $request);
+    }
+
+    public function createCliente(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required',
+        ]);
+        $cliente = $this->updateCliente($request, new Cliente(), true);
+        return self::respuestaDTOSimple('addCliente','Crea nuevo cliente','addCliente',[
+            'cliente' => $cliente
+        ]);
+    }
+
+    public function updateCliente(Request $request, Cliente $cliente, $pasaMano = false)
+    {
+        $request->validate([
+            'nombre' => 'min:2,max:100',
+            'base64Image' => 'regex:#^data:image/\w+;base64,#i|nullable',
+            'deleteImage' => 'in:si,no',
+            'ruc' => 'max:30',
+            'telefono' => 'max:20',
+            'ciudad' => 'max:50',
+            'barrio' => 'max:50',
+        ]);
+        if ($nombre = $request->get('nombre')) {
+            $cliente->nombre = $nombre;
+        }
+        if ($ruc = $request->get('ruc')) {
+            $cliente->ruc = $ruc;
+        }
+        if ($telefono = $request->get('telefono')) {
+            $cliente->telefono = $telefono;
+        }
+        if ($ciudad = $request->get('ciudad')) {
+            $cliente->ciudad = $ciudad;
+        }
+        if ($barrio = $request->get('barrio')) {
+            $cliente->barrio = $barrio;
+        }
+        if ($base64Image = $request->get('base64Image')) {
+            $cliente->asociarImagen64($base64Image);
+        } else if ($request->get('deleteImage','no') == 'si') {
+            $cliente->borrarImagen();
+        }
+        $cliente->save();
+        $cliente->load(self::RELACIONES_BASICAS);
+        if ($pasaMano) {
+            return $cliente;
+        } else {
+            return self::respuestaDTOSimple('updateCliente','Modifica un cliente','updateCliente',[
+                'cliente' => $cliente
+            ]);
+        }
+    }
+
+    public function deleteCliente(Request $request, Cliente $cliente)
+    {
+        $cliente->delete();
+        return self::respuestaDTOSimple('deleteCliente','Borra un cliente','deleteCliente');
     }
 }

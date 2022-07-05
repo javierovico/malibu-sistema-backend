@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Cliente;
+use App\Models\Mesa;
 use App\Models\Producto;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
@@ -37,6 +39,8 @@ class RouteServiceProvider extends ServiceProvider
     public function boot()
     {
         Route::model('Producto',Producto::class);
+        Route::model('Cliente',Cliente::class);
+        Route::model('Mesa',Mesa::class);
         $this->configureRateLimiting();
 
         $this->routes(function () {

@@ -2,8 +2,13 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property Carrito $carritoActivo
+ * @property mixed $code
+ */
 class Mesa extends ModelRoot
 {
     const tableName = 'mesas';
@@ -33,5 +38,16 @@ class Mesa extends ModelRoot
         return $this->hasOne(Carrito::class, Carrito::COLUMNA_MESA_ID, self::COLUMNA_ID)
             ->where(Carrito::COLUMNA_STATUS, '<>',Carrito::ESTADO_FINALIZADO)
             ->latestOfMany(Carrito::COLUMNA_ID);
+    }
+
+    public function crearCarrito(?Cliente $cliente)
+    {
+        $carrito = new Carrito();
+        $carrito->fecha_creacion = CarbonImmutable::now();
+        $carrito->mesa()->associate($this);
+        if ($cliente) {
+            $carrito->cliente()->associate($cliente);
+        }
+        $carrito->save();
     }
 }

@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property mixed $barrio
+ * @property mixed $nombre
+ * @property mixed $ruc
+ * @property mixed $telefono
+ * @property mixed $ciudad
+ */
 class Cliente extends ModelRoot
 {
     use SoftDeletes;
@@ -27,6 +34,17 @@ class Cliente extends ModelRoot
     public function imagen(): BelongsTo
     {
         return $this->belongsTo(Archivo::class, self::COLUMNA_IMAGEN_ID);
+    }
+
+    public function asociarImagen64($url)
+    {
+        $archivoNuevo = Archivo::nuevoArchivo(base64_decode(preg_replace('#^data:image/\w+;base64,#i', '',$url)), ($this->nombre?:'sinNombre') . '.jpg');
+        $this->imagen()->associate($archivoNuevo);
+    }
+
+    public function borrarImagen()
+    {
+        $this->imagen()->dissociate();
     }
 
 }

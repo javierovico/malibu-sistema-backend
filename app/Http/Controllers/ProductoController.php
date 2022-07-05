@@ -137,7 +137,7 @@ class ProductoController extends Controller
         if ($pasaMano) {
             return $producto;
         } else {
-            return self::respuestaDTOSimple('getProducto','Obtiene un producto por id','getProducto',[
+            return self::respuestaDTOSimple('updateProducto','Obtiene un producto por id','updateProducto',[
                 'producto' => $producto
             ]);
         }

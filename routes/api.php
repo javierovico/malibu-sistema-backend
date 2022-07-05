@@ -42,9 +42,18 @@ Route::middleware([AuthMiddleware::class])->group(function () {
     });
     Route::prefix('mesa')->group(function(){
         Route::get('',[CarritoController::class,'getStatusMesas']);
+        Route::prefix('{Mesa}')->group(function(){
+            Route::post('asignar',[CarritoController::class,'asignarMesa']);
+        });
     });
     Route::prefix('cliente')->group(function(){
         Route::get('',[ClienteController::class,'getClientes']);
+        Route::post('',[ClienteController::class,'createCliente']);
+        Route::prefix('{Cliente}')->group(function(){
+//            Route::get('',[ClienteController::class,'getCliente']);
+            Route::put('',[ClienteController::class,'updateCliente']);
+            Route::delete('',[ClienteController::class,'deleteCliente']);
+        });
     });
     Route::prefix('archivo')->group(function(){
         Route::prefix('imagen')->group(function(){
