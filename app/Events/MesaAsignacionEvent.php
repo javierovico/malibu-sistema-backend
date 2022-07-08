@@ -28,6 +28,7 @@ class MesaAsignacionEvent implements ShouldBroadcast
         $this->mesa->load([
             Mesa::RELACION_ULTIMO_CARITO . '.' . Carrito::RELACION_MOZO,
             Mesa::RELACION_CARRITO_ACTIVO . '.' . Carrito::RELACION_MOZO,
+            Mesa::RELACION_CARRITO_ACTIVO . '.' . Carrito::RELACION_CLIENTE,
         ]);
         return $this->mesa->toArray();
     }

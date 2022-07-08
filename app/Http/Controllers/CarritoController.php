@@ -17,7 +17,8 @@ class CarritoController extends Controller
         $request->validate([
             'withCarrito' => 'in:1,0',
             'activo' => 'in:1,0',
-            'withMozo' => 'in:1,0'
+            'withMozo' => 'in:1,0',
+            'withCliente' => 'in:1,0'
         ]);
         $mesasQuery = Mesa::query();
         if ($request->get('withCarrito')) {
@@ -26,6 +27,9 @@ class CarritoController extends Controller
             } else {
                 $mesasQuery->with(Mesa::RELACION_CARRITO_ACTIVO);
             }
+        }
+        if ($request->get('withCliente')) {
+            $mesasQuery->with(Mesa::RELACION_CARRITO_ACTIVO . '.' . Carrito::RELACION_CLIENTE);
         }
         if (null !== ($activo = $request->get('activo'))) {
             $mesasQuery->where(Mesa::COLUMNA_ACTIVO, '=',$activo?'1':'0');
