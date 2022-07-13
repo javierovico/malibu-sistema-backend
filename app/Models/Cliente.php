@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property mixed $ruc
  * @property mixed $telefono
  * @property mixed $ciudad
+ * @method static self findOrFail(mixed $clienteId)
  */
 class Cliente extends ModelRoot
 {

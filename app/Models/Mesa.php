@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 /**
  * @property Carrito $carritoActivo
  * @property mixed $code
+ * @method static self findOrFail(mixed $mesaId)
  */
 class Mesa extends ModelRoot
 {
@@ -40,16 +41,14 @@ class Mesa extends ModelRoot
             ->latestOfMany(Carrito::COLUMNA_ID);
     }
 
-    public function crearCarrito(?Cliente $cliente, Usuario $user): Carrito
+    /**
+     * Crea nueva instancia sin guardar carrito
+     * @param Cliente|null $cliente
+     * @param Usuario $user
+     * @return Carrito
+     */
+    public function nuevoCarrito(?Cliente $cliente, Usuario $user): Carrito
     {
-        $carrito = new Carrito();
-        $carrito->fecha_creacion = CarbonImmutable::now();
-        $carrito->mozo()->associate($user);
-        $carrito->mesa()->associate($this);
-        if ($cliente) {
-            $carrito->cliente()->associate($cliente);
-        }
-        $carrito->save();
-        return $carrito;
+        return Carrito::nuevoCarrito($user, $this, $cliente);
     }
 }

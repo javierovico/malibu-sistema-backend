@@ -6,11 +6,14 @@ use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Exception;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property mixed $fecha_creacion
  * @property mixed $status
  * @property Mesa $mesa
+ * @property mixed $isActivo
+ * @see Carrito::getIsActivoAttribute()
  * @see Carrito::setFechaCreacionAttribute()
  * @see Carrito::getFechaCreacionAttribute()
  */
@@ -40,12 +43,52 @@ class Carrito extends ModelRoot
         self::COLUMNA_IS_DELIVERY => 'boolean'
     ];
 
-    const ESTADO_FINALIZADO = 'finalizado';
     const ESTADO_CREADO = 'creado';
+    const ESTADO_EDITADO = 'modificado';
+    const ESTADO_FINALIZADO = 'finalizado';
+
+    const ESTADOS_ACTIVOS = [
+        self::ESTADO_CREADO,
+    ];
 
     const RELACION_MESA = 'mesa';
     const RELACION_CLIENTE = 'cliente';
     const RELACION_MOZO = 'mozo';
+    const RELACION_PRODUCTOS = 'productos';
+
+    /**
+     * Crea sin guardar en la base de datos
+     * @param Usuario $mozo
+     * @param Mesa|null $mesa
+     * @param Cliente|null $cliente
+     * @return static
+     */
+    public static function nuevoCarrito(Usuario $mozo, ?Mesa $mesa = null, ?Cliente $cliente = null): self
+    {
+        $carrito = new Carrito();
+        $carrito->fecha_creacion = CarbonImmutable::now();
+        $carrito->mozo()->associate($mozo);
+        if ($mesa) {
+            $carrito->mesa()->associate($mesa);
+        }
+        if ($cliente) {
+            $carrito->cliente()->associate($cliente);
+        }
+        return $carrito;
+    }
+
+    public function productos(): BelongsToMany
+    {
+        return $this
+            ->belongsToMany(Producto::class,CarritoProducto::tableName, CarritoProducto::COLUMNA_CARRITO_ID, CarritoProducto::COLUMNA_PRODUCTO_ID)
+            ->withPivot([
+                CarritoProducto::COLUMNA_ESTADO,
+                CarritoProducto::COLUMNA_PRECIO,
+                CarritoProducto::COLUMNA_COSTO,
+            ])
+            ->withTimestamps()
+        ;
+    }
 
     public function mesa(): BelongsTo
     {
@@ -78,6 +121,11 @@ class Carrito extends ModelRoot
         } catch (Exception $e) {
             return null;
         }
+    }
+
+    public function getIsActivoAttribute()
+    {
+        return in_array($this->status, self::ESTADOS_ACTIVOS);
     }
 
 }

@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property mixed $nombre
  * @property mixed $precio
  * @see Producto::getUrlAttribute()
+ * @method static self find(mixed $idAgrega)
+ * @method static self findOrFail(mixed $idAgrega)
  */
 class Producto extends ModelRoot
 {

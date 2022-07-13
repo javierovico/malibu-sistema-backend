@@ -12,30 +12,25 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MesaAsignacionEvent implements ShouldBroadcast
+class CarritoEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private Mesa $mesa;
+    private Carrito $carrito;
 
-    public function __construct(Mesa $mesa)
+    public function __construct(Carrito $carrito)
     {
-        $this->mesa = $mesa;
+        $this->carrito = $carrito;
     }
 
-    public function broadcastWith()
+    public function broadcastWith(): array
     {
-        $this->mesa->load([
-            Mesa::RELACION_ULTIMO_CARITO . '.' . Carrito::RELACION_MOZO,
-            Mesa::RELACION_CARRITO_ACTIVO . '.' . Carrito::RELACION_MOZO,
-            Mesa::RELACION_CARRITO_ACTIVO . '.' . Carrito::RELACION_CLIENTE,
-        ]);
-        return $this->mesa->toArray();
+        return $this->carrito->toArray();
     }
 
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
-        return 'mesa-asignada';
+        return $this->carrito->status;
     }
 
 
@@ -46,6 +41,6 @@ class MesaAsignacionEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('mesa');
+        return new PrivateChannel('carrito');
     }
 }

@@ -17,4 +17,6 @@ class CarritoProducto extends ModelRoot
     const COLUMNA_ESTADO = 'estado';
     const COLUMNA_PRECIO = 'precio';
     const COLUMNA_COSTO = 'costo';
+
+    const ESTADO_PREPARACION = 'preparacion';
 }

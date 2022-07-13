@@ -43,7 +43,14 @@ Route::middleware([AuthMiddleware::class])->group(function () {
     Route::prefix('mesa')->group(function(){
         Route::get('',[CarritoController::class,'getStatusMesas']);
         Route::prefix('{Mesa}')->group(function(){
-            Route::post('asignar',[CarritoController::class,'asignarMesa']);
+//            Route::post('asignar',[CarritoController::class,'asignarMesa']);
+        });
+    });
+    Route::prefix('carrito')->group(function(){
+        Route::get('',[CarritoController::class,'getCarritos']);
+        Route::post('',[CarritoController::class,'createCarrito']);
+        Route::prefix('{Carrito}')->group(function(){
+            Route::put('',[CarritoController::class,'updateCarrito']);
         });
     });
     Route::prefix('cliente')->group(function(){

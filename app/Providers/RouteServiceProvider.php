@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Carrito;
 use App\Models\Cliente;
 use App\Models\Mesa;
 use App\Models\Producto;
@@ -41,6 +42,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::model('Producto',Producto::class);
         Route::model('Cliente',Cliente::class);
         Route::model('Mesa',Mesa::class);
+        Route::model('Carrito',Carrito::class);
         $this->configureRateLimiting();
 
         $this->routes(function () {
