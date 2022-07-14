@@ -144,7 +144,8 @@ class CarritoController extends Controller
         if ($request->has('mesaId')) {      //si se tiene la mesa se prepara para agregar o quitar
             $mesa = ($mesaId = $request->get('mesaId')) ? Mesa::findOrFail($mesaId) : null;
             if ($mesa && $mesa->carritoActivo) {
-                throw ExceptionSystem::createException('La mesa ' . $mesa->code . ' ya esta asignada','errorAsignacion','Mesa en uso',Response::HTTP_NOT_ACCEPTABLE);
+                throw ExceptionSystem::createExceptionInput('mesaId',['La mesa ' . $mesa->code . ' ya esta asignada']);
+//                throw ExceptionSystem::createException('La mesa ' . $mesa->code . ' ya esta asignada','errorAsignacion','Mesa en uso',Response::HTTP_NOT_ACCEPTABLE);
             }
             if ($mesa) {
                 $carrito->mesa()->associate($mesa);
@@ -161,7 +162,7 @@ class CarritoController extends Controller
             }
         }
         if ($carrito->fresh()) {  //si ya existia
-            $carrito->status = Carrito::ESTADO_EDITADO;
+            $carrito->status = Carrito::ESTADO_MODIFICADO;
         }
         //Antes de agregar los productos nos aseguramos que el carrito este guardado
         $carrito->save();

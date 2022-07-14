@@ -44,11 +44,12 @@ class Carrito extends ModelRoot
     ];
 
     const ESTADO_CREADO = 'creado';
-    const ESTADO_EDITADO = 'modificado';
+    const ESTADO_MODIFICADO = 'modificado';
     const ESTADO_FINALIZADO = 'finalizado';
 
     const ESTADOS_ACTIVOS = [
         self::ESTADO_CREADO,
+        self::ESTADO_MODIFICADO,
     ];
 
     const RELACION_MESA = 'mesa';

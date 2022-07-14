@@ -51,7 +51,7 @@ class ExceptionSystem extends \Exception
         return $exeption;
     }
 
-    public static function createExceptionInput($keyInput, $errors): self
+    public static function createExceptionInput($keyInput, array $errors): self
     {
         $exeption = self::createException("The given data was invalid.", 'error', 'Error con los siguientes datos', Response::HTTP_UNPROCESSABLE_ENTITY);
         $exeption->errors = [
