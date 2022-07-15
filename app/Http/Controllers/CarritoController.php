@@ -137,6 +137,7 @@ class CarritoController extends Controller
             'productosIdQuita.*' => 'numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
             'mesaId' => 'nullable|numeric|exists:' . Mesa::class . ',' . Mesa::COLUMNA_ID,
             'clienteId' => 'nullable|numeric|exists:' . Mesa::class . ',' . Mesa::COLUMNA_ID,
+            'is_delivery' => 'in:1,0'
         ]);
         if (!$carrito->isActivo) {
             throw ExceptionSystem::createException('El carrito ya no esta disponible para su modificacion','carritoNoDispo','Carrito no disponible',Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -161,11 +162,17 @@ class CarritoController extends Controller
                 $carrito->cliente()->dissociate();
             }
         }
+        if ($request->has('is_delivery')) {
+            $carrito->is_delivery = !!$request->get('is_delivery');
+        }
         if ($carrito->fresh()) {  //si ya existia
             $carrito->status = Carrito::ESTADO_MODIFICADO;
         }
         //Antes de agregar los productos nos aseguramos que el carrito este guardado
         $carrito->save();
+        if ($productosIdQuita = $request->get('productosIdQuita')) {
+            $carrito->productos()->detach($productosIdQuita);
+        }
         if ($productosIdAgrega = $request->get('productosIdAgrega')) {
             foreach($productosIdAgrega as $idAgrega) {
                 $productoAgrega = Producto::findOrFail($idAgrega);
@@ -175,9 +182,6 @@ class CarritoController extends Controller
                     CarritoProducto::COLUMNA_ESTADO => CarritoProducto::ESTADO_PREPARACION
                 ]);
             }
-        }
-        if ($productosIdQuita = $request->get('productosIdQuita')) {
-            $carrito->productos()->detach($productosIdQuita);
         }
         self::cargarRelaciones($request, $carrito);
         CarritoEvent::dispatch($carrito);

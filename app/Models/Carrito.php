@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property mixed $status
  * @property Mesa $mesa
  * @property mixed $isActivo
+ * @property mixed $is_delivery
  * @see Carrito::getIsActivoAttribute()
  * @see Carrito::setFechaCreacionAttribute()
  * @see Carrito::getFechaCreacionAttribute()
