@@ -39,7 +39,7 @@ class CarritoController extends Controller
             $mesasQuery->with(Mesa::RELACION_CARRITO_ACTIVO . '.' . Carrito::RELACION_CLIENTE);
         }
         if (null !== ($activo = $request->get('activo'))) {
-            $mesasQuery->where(Mesa::COLUMNA_ACTIVO, '=',$activo?'1':'0');
+            $mesasQuery->where(Mesa::COLUMNA_ACTIVO, '=', $activo ? '1' : '0');
         }
         return paginate($mesasQuery, $request);
     }
@@ -51,17 +51,17 @@ class CarritoController extends Controller
     public function asignarMesa(Request $request, Mesa $mesa)
     {
         $request->validate([
-            'clienteId' => 'exists:'.Cliente::class.',' .Cliente::COLUMNA_ID,
+            'clienteId' => 'exists:' . Cliente::class . ',' . Cliente::COLUMNA_ID,
         ]);
         if ($mesa->carritoActivo) {
-            throw ExceptionSystem::createException('La mesa ' . $mesa->code . ' ya esta asignada','errorAsignacion','Mesa en uso',Response::HTTP_NOT_ACCEPTABLE);
+            throw ExceptionSystem::createException('La mesa ' . $mesa->code . ' ya esta asignada', 'errorAsignacion', 'Mesa en uso', Response::HTTP_NOT_ACCEPTABLE);
         }
         /** @var Cliente $cliente */
         $cliente = ($clienteId = $request->get('clienteId')) ? Cliente::find($clienteId) : null;
-        $carrito = $mesa->nuevoCarrito($cliente,$request->user());
+        $carrito = $mesa->nuevoCarrito($cliente, $request->user());
         $carrito->save();
         CarritoEvent::dispatch($carrito);
-        return self::respuestaDTOSimple('asignarMesa','Asigna una mesa a un cliente','asignarMesa');
+        return self::respuestaDTOSimple('asignarMesa', 'Asigna una mesa a un cliente', 'asignarMesa');
     }
 
     /**
@@ -104,7 +104,7 @@ class CarritoController extends Controller
         ]);
         $query = Carrito::query();
         if ($request->get('soloActivos')) {
-            $query->whereIn(Carrito::COLUMNA_STATUS,Carrito::ESTADOS_ACTIVOS);
+            $query->whereIn(Carrito::COLUMNA_STATUS, Carrito::ESTADOS_ACTIVOS);
         }
         self::cargarRelaciones($request, $query);
         return paginate($query, $request);
@@ -120,7 +120,7 @@ class CarritoController extends Controller
         /** @var Usuario $user */
         $user = $request->user();
         $carrito = $this->updateCarrito($request, Carrito::nuevoCarrito($user), true);
-        return self::respuestaDTOSimple('createCarrito','Crea un carrito','createCarrito',[
+        return self::respuestaDTOSimple('createCarrito', 'Crea un carrito', 'createCarrito', [
             'carrito' => $carrito
         ]);
     }
@@ -140,12 +140,12 @@ class CarritoController extends Controller
             'is_delivery' => 'in:1,0'
         ]);
         if (!$carrito->isActivo) {
-            throw ExceptionSystem::createException('El carrito ya no esta disponible para su modificacion','carritoNoDispo','Carrito no disponible',Response::HTTP_UNPROCESSABLE_ENTITY);
+            throw ExceptionSystem::createException('El carrito ya no esta disponible para su modificacion', 'carritoNoDispo', 'Carrito no disponible', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         if ($request->has('mesaId')) {      //si se tiene la mesa se prepara para agregar o quitar
             $mesa = ($mesaId = $request->get('mesaId')) ? Mesa::findOrFail($mesaId) : null;
             if ($mesa && $mesa->carritoActivo) {
-                throw ExceptionSystem::createExceptionInput('mesaId',['La mesa ' . $mesa->code . ' ya esta asignada']);
+                throw ExceptionSystem::createExceptionInput('mesaId', ['La mesa ' . $mesa->code . ' ya esta asignada']);
 //                throw ExceptionSystem::createException('La mesa ' . $mesa->code . ' ya esta asignada','errorAsignacion','Mesa en uso',Response::HTTP_NOT_ACCEPTABLE);
             }
             if ($mesa) {
@@ -174,9 +174,9 @@ class CarritoController extends Controller
             $carrito->productos()->detach($productosIdQuita);
         }
         if ($productosIdAgrega = $request->get('productosIdAgrega')) {
-            foreach($productosIdAgrega as $idAgrega) {
+            foreach ($productosIdAgrega as $idAgrega) {
                 $productoAgrega = Producto::findOrFail($idAgrega);
-                $carrito->productos()->attach($productoAgrega,[
+                $carrito->productos()->attach($productoAgrega, [
                     CarritoProducto::COLUMNA_COSTO => $productoAgrega->costo,
                     CarritoProducto::COLUMNA_PRECIO => $productoAgrega->precio,
                     CarritoProducto::COLUMNA_ESTADO => CarritoProducto::ESTADO_PREPARACION
@@ -188,7 +188,7 @@ class CarritoController extends Controller
         if ($pasaMano) {
             return $carrito;
         } else {
-            return self::respuestaDTOSimple('updateCarrito','Modifica un carrito','updateCarrito',[
+            return self::respuestaDTOSimple('updateCarrito', 'Modifica un carrito', 'updateCarrito', [
                 'carrito' => $carrito
             ]);
         }
