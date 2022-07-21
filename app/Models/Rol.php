@@ -24,6 +24,7 @@ class Rol extends ModelRoot
     const ROL_ADMIN_PRODUCTOS = 'admin_productos';
     const ROL_VISOR_INGRESOS = 'visor_ingresos';
     const ROL_OPERADOR = 'operador';
+    const ROL_COCINERO = 'cocinero';
 
     const ROLES_INICIALIZADOS = [
         self::ROL_ADMIN_PRODUCTOS => [
@@ -34,6 +35,9 @@ class Rol extends ModelRoot
         ],
         self::ROL_OPERADOR => [
             self::COLUMNA_DESCRIPCION => 'Tiene permisos de operacion',
+        ],
+        self::ROL_COCINERO => [
+            self::COLUMNA_DESCRIPCION => 'Tiene permisos de cocina',
         ],
     ];
 

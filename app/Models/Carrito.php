@@ -7,16 +7,19 @@ use Carbon\CarbonImmutable;
 use Exception;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Collection;
 
 /**
  * @property mixed $fecha_creacion
+ * @see Carrito::setFechaCreacionAttribute()
+ * @see Carrito::getFechaCreacionAttribute()
  * @property mixed $status
  * @property Mesa $mesa
  * @property mixed $isActivo
- * @property mixed $is_delivery
  * @see Carrito::getIsActivoAttribute()
- * @see Carrito::setFechaCreacionAttribute()
- * @see Carrito::getFechaCreacionAttribute()
+ * @property mixed $is_delivery
+ * @property boolean $pagado
+ * @property Collection $productos
  */
 class Carrito extends ModelRoot
 {
@@ -46,11 +49,13 @@ class Carrito extends ModelRoot
 
     const ESTADO_CREADO = 'creado';
     const ESTADO_MODIFICADO = 'modificado';
+    const ESTADO_PAGADO = 'pagado';
     const ESTADO_FINALIZADO = 'finalizado';
 
     const ESTADOS_ACTIVOS = [
         self::ESTADO_CREADO,
         self::ESTADO_MODIFICADO,
+        self::ESTADO_PAGADO,
     ];
 
     const RELACION_MESA = 'mesa';
@@ -84,6 +89,7 @@ class Carrito extends ModelRoot
         return $this
             ->belongsToMany(Producto::class,CarritoProducto::tableName, CarritoProducto::COLUMNA_CARRITO_ID, CarritoProducto::COLUMNA_PRODUCTO_ID)
             ->withPivot([
+                CarritoProducto::COLUMNA_ID,
                 CarritoProducto::COLUMNA_ESTADO,
                 CarritoProducto::COLUMNA_PRECIO,
                 CarritoProducto::COLUMNA_COSTO,
@@ -128,6 +134,11 @@ class Carrito extends ModelRoot
     public function getIsActivoAttribute()
     {
         return in_array($this->status, self::ESTADOS_ACTIVOS);
+    }
+
+    public function getProductoExistenteInCarrito($idProducto): ?Producto
+    {
+        return $this->productos->first(fn(Producto $p) => $p->id == $idProducto);
     }
 
 }

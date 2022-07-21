@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -16,6 +17,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property mixed $descripcion
  * @property mixed $nombre
  * @property mixed $precio
+ * @property mixed $id
+ * @property CarritoProducto $carritoProducto
+ * @see Producto::getCarritoProductoAttribute()
+ * @property Pivot $pivot
  * @see Producto::getUrlAttribute()
  * @method static self find(mixed $idAgrega)
  * @method static self findOrFail(mixed $idAgrega)
@@ -76,6 +81,13 @@ class Producto extends ModelRoot
     public static function getQueryProductoSimple(?Builder $queryActual = null): Builder
     {
         return self::getQueryByTipoProductocode(TipoProducto::TIPO_PRODUCTO_SIMPLE, $queryActual);
+    }
+
+    public function getCarritoProductoAttribute(): ?CarritoProducto
+    {
+        $c = new CarritoProducto($this->pivot->attributes);
+        $c->exists = true;
+        return $c;
     }
 
     public function imagen(): BelongsTo

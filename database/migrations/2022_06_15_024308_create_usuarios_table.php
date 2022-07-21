@@ -18,7 +18,6 @@ class CreateUsuariosTable extends Migration
             $table->id(Usuario::COLUMNA_ID);
             $table->string(Usuario::COLUMNA_USER,100)->unique();
             $table->string(Usuario::COLUMNA_PASSWORD,250);
-            $table->text(Usuario::COLUMNA_NOMBRE);
             $table->timestamps();
         });
     }

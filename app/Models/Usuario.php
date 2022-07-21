@@ -13,7 +13,6 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * @property mixed $password
  * @property mixed $id
- * @property mixed $nombre
  * @property mixed $user
  */
 class Usuario extends ModelRoot
@@ -25,18 +24,16 @@ class Usuario extends ModelRoot
     const COLUMNA_ID = 'id';
     const COLUMNA_USER = 'user';
     const COLUMNA_PASSWORD = 'password';
-    const COLUMNA_NOMBRE = 'nombre';
 
     protected $hidden = [
         self::COLUMNA_PASSWORD
     ];
 
-    public static function nuevoUsuario($usuario, $nombre, $password): self
+    public static function nuevoUsuario($usuario, $password): self
     {
         $nuevo = new self();
         $nuevo->user = $usuario;
         $nuevo->password = $password;
-        $nuevo->nombre = $nombre;
         $nuevo->save();
         return $nuevo;
     }

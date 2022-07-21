@@ -23,6 +23,7 @@ class Cliente extends ModelRoot
     protected $primaryKey = self::COLUMNA_ID;
 
     const COLUMNA_ID = 'id';
+    const COLUMNA_USUARIO_ID = 'usuario_id';
     const COLUMNA_IMAGEN_ID = 'imagen_id';
     const COLUMNA_NOMBRE = 'nombre';
     const COLUMNA_RUC = 'ruc';

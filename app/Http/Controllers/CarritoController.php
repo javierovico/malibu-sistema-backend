@@ -85,7 +85,7 @@ class CarritoController extends Controller
             $loads[] = Carrito::RELACION_MOZO;
         }
         if ($request->get('withProductos')) {
-            $loads[] = Carrito::RELACION_PRODUCTOS;
+            $loads[] = Carrito::RELACION_PRODUCTOS . '.' . Producto::RELACION_TIPO_PRODUCTO;
         }
         if ($request->get('withMesa')) {
             $loads[] = Carrito::RELACION_MESA;
@@ -137,16 +137,23 @@ class CarritoController extends Controller
             'productosIdQuita.*' => 'numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
             'mesaId' => 'nullable|numeric|exists:' . Mesa::class . ',' . Mesa::COLUMNA_ID,
             'clienteId' => 'nullable|numeric|exists:' . Mesa::class . ',' . Mesa::COLUMNA_ID,
-            'is_delivery' => 'in:1,0'
+            'is_delivery' => 'in:1,0',
+            'pagado' => 'in:1,0',
+            'cambiosEstados' => 'array',
+            'cambiosEstados.*.id' => 'numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
+            'cambiosEstados.*.estado' => 'in:' . join(',',CarritoProducto::ESTADOS_ADMITIDOS_ORDEN)
         ]);
         if (!$carrito->isActivo) {
             throw ExceptionSystem::createException('El carrito ya no esta disponible para su modificacion', 'carritoNoDispo', 'Carrito no disponible', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        $previamentePagado = $carrito->pagado;
+        if ($request->has('pagado')) {
+            $carrito->pagado = !!$request->get('pagado');
         }
         if ($request->has('mesaId')) {      //si se tiene la mesa se prepara para agregar o quitar
             $mesa = ($mesaId = $request->get('mesaId')) ? Mesa::findOrFail($mesaId) : null;
             if ($mesa && $mesa->carritoActivo) {
                 throw ExceptionSystem::createExceptionInput('mesaId', ['La mesa ' . $mesa->code . ' ya esta asignada']);
-//                throw ExceptionSystem::createException('La mesa ' . $mesa->code . ' ya esta asignada','errorAsignacion','Mesa en uso',Response::HTTP_NOT_ACCEPTABLE);
             }
             if ($mesa) {
                 $carrito->mesa()->associate($mesa);
@@ -155,6 +162,9 @@ class CarritoController extends Controller
             }
         }
         if ($request->has('clienteId')) {      //si se tiene la cliente se prepara para agregar o quitar
+            if ($previamentePagado) {
+                throw ExceptionSystem::createExceptionInput('clienteId',['Ya no se pueden modificar luego de haber pagado']);
+            }
             $cliente = ($clienteId = $request->get('clienteId')) ? Cliente::findOrFail($clienteId) : null;
             if ($cliente) {
                 $carrito->cliente()->associate($cliente);
@@ -163,24 +173,59 @@ class CarritoController extends Controller
             }
         }
         if ($request->has('is_delivery')) {
+            if ($previamentePagado) {
+                throw ExceptionSystem::createExceptionInput('is_delivery',['Ya no se pueden modificar luego de haber pagado']);
+            }
             $carrito->is_delivery = !!$request->get('is_delivery');
         }
         if ($carrito->fresh()) {  //si ya existia
-            $carrito->status = Carrito::ESTADO_MODIFICADO;
+            if ($carrito->pagado) {
+                $carrito->status = Carrito::ESTADO_PAGADO;
+            } else {
+                $carrito->status = Carrito::ESTADO_MODIFICADO;
+            }
         }
         //Antes de agregar los productos nos aseguramos que el carrito este guardado
         $carrito->save();
-        if ($productosIdQuita = $request->get('productosIdQuita')) {
-            $carrito->productos()->detach($productosIdQuita);
+        if (($productosIdQuita = $request->get('productosIdQuita')) && count($productosIdQuita)) {
+            if ($previamentePagado) {
+                throw ExceptionSystem::createExceptionInput('productosIdQuita',['Ya no se pueden modificar luego de haber pagado']);
+            }
+            $carrito->load(Carrito::RELACION_PRODUCTOS);    //carga todos los productos
+            foreach ($productosIdQuita as $idQuita) {
+                $producto = $carrito->getProductoExistenteInCarrito($idQuita);
+                $carritoProducto = $producto->carritoProducto;
+                if ($carritoProducto->isActivo) {
+                    throw ExceptionSystem::createExceptionInput('productos',['Id: ' . $idQuita . ' ya no esta en estado ' . CarritoProducto::ESTADO_INICIADO . ', no se puede quitar']);
+                } else {
+                    $carrito->productos()->detach($idQuita);
+                }
+            }
         }
-        if ($productosIdAgrega = $request->get('productosIdAgrega')) {
+        if (($productosIdAgrega = $request->get('productosIdAgrega')) && count($productosIdAgrega)) {
+            if ($previamentePagado) {
+                throw ExceptionSystem::createExceptionInput('productosIdAgrega',['Ya no se pueden modificar luego de haber pagado']);
+            }
             foreach ($productosIdAgrega as $idAgrega) {
                 $productoAgrega = Producto::findOrFail($idAgrega);
                 $carrito->productos()->attach($productoAgrega, [
                     CarritoProducto::COLUMNA_COSTO => $productoAgrega->costo,
                     CarritoProducto::COLUMNA_PRECIO => $productoAgrega->precio,
-                    CarritoProducto::COLUMNA_ESTADO => CarritoProducto::ESTADO_PREPARACION
+                    CarritoProducto::COLUMNA_ESTADO => CarritoProducto::ESTADO_INICIADO
                 ]);
+            }
+        }
+        if ($cambiosEstados = $request->get('cambiosEstados')) {
+            $carrito->load(Carrito::RELACION_PRODUCTOS);    //carga todos los productos
+            foreach ($cambiosEstados as $ce) {
+                $producto = $carrito->getProductoExistenteInCarrito($ce['id']);
+                $carritoProducto = $producto->carritoProducto;
+                try {
+                    $carritoProducto->estado = $ce['estado'];
+                } catch (\Throwable $e) {
+
+                }
+                $carritoProducto->save();
             }
         }
         self::cargarRelaciones($request, $carrito);

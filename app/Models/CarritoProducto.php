@@ -2,9 +2,21 @@
 
 namespace App\Models;
 
+use App\Exceptions\ExceptionSystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * @property mixed $estado
+ * @see CarritoProducto::setEstadoAttribute()
+ * @property mixed $calculado
+ * @see CarritoProducto::getCalculadoAttribute()
+ * @property boolean $isActivo
+ * @see CarritoProducto::getIsActivoAttribute()
+ * @property integer|false $posicionEstado
+ * @see CarritoProducto::getPosicionEstadoAttribute()
+ */
 class CarritoProducto extends ModelRoot
 {
     const tableName = 'carrito_producto';
@@ -18,5 +30,54 @@ class CarritoProducto extends ModelRoot
     const COLUMNA_PRECIO = 'precio';
     const COLUMNA_COSTO = 'costo';
 
+    protected $guarded = [];
+
+    const ESTADO_INICIADO = 'iniciado';
     const ESTADO_PREPARACION = 'preparacion';
+    const ESTADO_FINALIZADO = 'finalizado';
+
+    const ESTADOS_ADMITIDOS_ORDEN = [
+        self::ESTADO_INICIADO,
+        self::ESTADO_PREPARACION,
+        self::ESTADO_FINALIZADO,
+    ];
+
+    const ESTADOS_ACTIVOS = [
+        self::ESTADO_PREPARACION,
+    ];
+
+    /**
+     * Retorna la posicion del estado en el array ESTADOS_ADMITIDOS_ORDEN
+     * @param $att
+     * @return false|int
+     */
+    private static function calculePosicionEstado($att)
+    {
+        return array_search($att, self::ESTADOS_ADMITIDOS_ORDEN);
+    }
+
+    public function getIsActivoAttribute(): bool
+    {
+        return in_array($this->estado, self::ESTADOS_ACTIVOS);
+    }
+
+    public function getPosicionEstadoAttribute()
+    {
+        return array_key_exists(self::COLUMNA_ESTADO,$this->attributes)?self::calculePosicionEstado($this->attributes[self::COLUMNA_ESTADO]):false;
+    }
+
+    /**
+     * @throws ExceptionSystem
+     */
+    public function setEstadoAttribute($att)
+    {
+        if (!in_array($att,self::ESTADOS_ADMITIDOS_ORDEN)) {
+            throw ExceptionSystem::createException('Estado `' . $att . '` no esta en la lista de estados admitidos','estadoNoAdmitido','Estado no admitido', Response::HTTP_NOT_ACCEPTABLE);
+        }
+        $nuevaPosicion = self::calculePosicionEstado($att);
+        if ($this->posicionEstado!==false && $this->posicionEstado > $nuevaPosicion) {
+            throw ExceptionSystem::createException("No se puede retroceder del estado `$this->estado`($this->posicionEstado) al estado `$att` ($nuevaPosicion)",'estadoNoRetroceso','Estado no retroceso', Response::HTTP_NOT_ACCEPTABLE);
+        }
+        $this->attributes[self::COLUMNA_ESTADO] = $att;
+    }
 }
