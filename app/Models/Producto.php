@@ -83,6 +83,11 @@ class Producto extends ModelRoot
         return self::getQueryByTipoProductocode(TipoProducto::TIPO_PRODUCTO_SIMPLE, $queryActual);
     }
 
+    public static function getQueryProductoDelivery(?Builder $queryActual = null): Builder
+    {
+        return self::getQueryByTipoProductocode(TipoProducto::TIPO_PRODUCTO_DELIVERY, $queryActual);
+    }
+
     public function getCarritoProductoAttribute(): ?CarritoProducto
     {
         $c = new CarritoProducto($this->pivot->attributes);

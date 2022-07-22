@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Exceptions\ExceptionCarritoProductoState;
 use App\Exceptions\ExceptionSystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,12 +33,12 @@ class CarritoProducto extends ModelRoot
 
     protected $guarded = [];
 
-    const ESTADO_INICIADO = 'iniciado';
+    const ESTADO_PENDIENTE = 'pendiente';
     const ESTADO_PREPARACION = 'preparacion';
     const ESTADO_FINALIZADO = 'finalizado';
 
     const ESTADOS_ADMITIDOS_ORDEN = [
-        self::ESTADO_INICIADO,
+        self::ESTADO_PENDIENTE,
         self::ESTADO_PREPARACION,
         self::ESTADO_FINALIZADO,
     ];
@@ -68,15 +69,18 @@ class CarritoProducto extends ModelRoot
 
     /**
      * @throws ExceptionSystem
+     * @throws ExceptionCarritoProductoState
      */
     public function setEstadoAttribute($att)
     {
         if (!in_array($att,self::ESTADOS_ADMITIDOS_ORDEN)) {
-            throw ExceptionSystem::createException('Estado `' . $att . '` no esta en la lista de estados admitidos','estadoNoAdmitido','Estado no admitido', Response::HTTP_NOT_ACCEPTABLE);
+            throw ExceptionCarritoProductoState::makeEstadoNoAdmitido($att);
+//            throw ExceptionSystem::createException('Estado `' . $att . '` no esta en la lista de estados admitidos','estadoNoAdmitido','Estado no admitido', Response::HTTP_NOT_ACCEPTABLE);
         }
         $nuevaPosicion = self::calculePosicionEstado($att);
         if ($this->posicionEstado!==false && $this->posicionEstado > $nuevaPosicion) {
-            throw ExceptionSystem::createException("No se puede retroceder del estado `$this->estado`($this->posicionEstado) al estado `$att` ($nuevaPosicion)",'estadoNoRetroceso','Estado no retroceso', Response::HTTP_NOT_ACCEPTABLE);
+            throw ExceptionCarritoProductoState::makeEstadoNoRetroceso($this->estado,$att);
+//            throw ExceptionSystem::createException("No se puede retroceder del estado `$this->estado`($this->posicionEstado) al estado `$att` ($nuevaPosicion)",'estadoNoRetroceso','Estado no retroceso', Response::HTTP_NOT_ACCEPTABLE);
         }
         $this->attributes[self::COLUMNA_ESTADO] = $att;
     }

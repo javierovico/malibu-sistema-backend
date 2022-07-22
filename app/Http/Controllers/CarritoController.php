@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\CarritoEvent;
+use App\Exceptions\ExceptionCarritoProductoState;
 use App\Exceptions\ExceptionSystem;
 use App\Models\Carrito;
 use App\Models\CarritoProducto;
@@ -148,6 +149,9 @@ class CarritoController extends Controller
         }
         $previamentePagado = $carrito->pagado;
         if ($request->has('pagado')) {
+            if ($previamentePagado) {
+                throw ExceptionSystem::createExceptionInput('pagado',['Ya no se pueden modificar luego de haber pagado']);
+            }
             $carrito->pagado = !!$request->get('pagado');
         }
         if ($request->has('mesaId')) {      //si se tiene la mesa se prepara para agregar o quitar
@@ -196,7 +200,7 @@ class CarritoController extends Controller
                 $producto = $carrito->getProductoExistenteInCarrito($idQuita);
                 $carritoProducto = $producto->carritoProducto;
                 if ($carritoProducto->isActivo) {
-                    throw ExceptionSystem::createExceptionInput('productos',['Id: ' . $idQuita . ' ya no esta en estado ' . CarritoProducto::ESTADO_INICIADO . ', no se puede quitar']);
+                    throw ExceptionSystem::createExceptionInput('productosIdQuita',['Id: ' . $idQuita . ' ya no esta en estado ' . CarritoProducto::ESTADO_PENDIENTE . ', no se puede quitar']);
                 } else {
                     $carrito->productos()->detach($idQuita);
                 }
@@ -211,7 +215,7 @@ class CarritoController extends Controller
                 $carrito->productos()->attach($productoAgrega, [
                     CarritoProducto::COLUMNA_COSTO => $productoAgrega->costo,
                     CarritoProducto::COLUMNA_PRECIO => $productoAgrega->precio,
-                    CarritoProducto::COLUMNA_ESTADO => CarritoProducto::ESTADO_INICIADO
+                    CarritoProducto::COLUMNA_ESTADO => CarritoProducto::ESTADO_PENDIENTE
                 ]);
             }
         }
@@ -222,8 +226,9 @@ class CarritoController extends Controller
                 $carritoProducto = $producto->carritoProducto;
                 try {
                     $carritoProducto->estado = $ce['estado'];
-                } catch (\Throwable $e) {
-
+                } catch (ExceptionCarritoProductoState $e) {
+                    $e->setInput('cambiosEstados');
+                    throw $e;
                 }
                 $carritoProducto->save();
             }

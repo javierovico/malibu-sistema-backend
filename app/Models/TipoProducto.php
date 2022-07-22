@@ -18,6 +18,7 @@ class TipoProducto extends ModelRoot
 
     const TIPO_PRODUCTO_SIMPLE = 'simple';
     const TIPO_PRODUCTO_COMBO = 'combo';
+    const TIPO_PRODUCTO_DELIVERY = 'delivery';
 
     const TIPOS_PRODUCTO = [
         self::TIPO_PRODUCTO_SIMPLE => [
@@ -26,6 +27,9 @@ class TipoProducto extends ModelRoot
         self::TIPO_PRODUCTO_COMBO => [
             self::COLUMNA_DESCRIPCION => 'Producto combo'
         ],
+        self::TIPO_PRODUCTO_DELIVERY => [
+            self::COLUMNA_DESCRIPCION => 'Precio Delivery'
+        ]
     ];
 
     public static function getTipoProductoSimple(): self
@@ -36,6 +40,11 @@ class TipoProducto extends ModelRoot
     public static function getTipoProductoCombo(): self
     {
         return self::getTipoProductoByCode(self::TIPO_PRODUCTO_COMBO);
+    }
+
+    public static function getTipoProductoDelivery(): self
+    {
+        return self::getTipoProductoByCode(self::TIPO_PRODUCTO_DELIVERY);
     }
 
     public static function getTipoProductoByCode(string $code): self

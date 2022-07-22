@@ -16,9 +16,9 @@ class ExceptionSystem extends \Exception
     public int $statusHTTP = Response::HTTP_INTERNAL_SERVER_ERROR;
     public ?array $errors = null;
 
-    public static function createException($mensaje, $codigoString, $titulo, $statusHttp = Response::HTTP_INTERNAL_SERVER_ERROR) : self
+    public static function createException($mensaje, $codigoString, $titulo, $statusHttp = Response::HTTP_INTERNAL_SERVER_ERROR): ExceptionSystem
     {
-        $exception = new self($mensaje);
+        $exception = new static($mensaje);
         $exception->codigo = $codigoString;
         $exception->titulo = $titulo;
         $exception->statusHTTP = $statusHttp;
@@ -60,6 +60,10 @@ class ExceptionSystem extends \Exception
         return $exeption;
     }
 
+    public function setInput($inputName)
+    {
+        $this->errors[$inputName] = [$this->message];
+    }
     /**
      * Render the exception into an HTTP response.
      *
