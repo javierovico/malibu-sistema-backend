@@ -23,7 +23,7 @@ Route::get('/', function () {
         'debug' => config('app.debug'),
         'url' => config('app.url'),
         'ip' => $_SERVER['SERVER_ADDR'],
-        'user' => get_current_user(),
+        'user' => exec('whoami'),
     ], JSON_PRETTY_PRINT);
 });
 
