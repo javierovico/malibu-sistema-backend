@@ -13,6 +13,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+//Route::get('/', function () {
+//    return view('welcome');
+//});
 Route::get('/', function () {
-    return view('welcome');
+    return json_encode([
+        'nombre' => config('app.name'),
+        'env' => config('app.env'),
+        'debug' => config('app.debug'),
+        'url' => config('app.url'),
+        'ip' => $_SERVER['SERVER_ADDR'],
+        'user' => get_current_user(),
+    ], JSON_PRETTY_PRINT);
 });
+
