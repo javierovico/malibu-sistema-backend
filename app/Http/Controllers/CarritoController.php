@@ -10,6 +10,7 @@ use App\Models\CarritoProducto;
 use App\Models\Cliente;
 use App\Models\Mesa;
 use App\Models\Producto;
+use App\Models\TipoProducto;
 use App\Models\Usuario;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -77,6 +78,7 @@ class CarritoController extends Controller
             'withMozo' => 'in:1,0',
             'withProductos' => 'in:1,0',
             'withMesa' => 'in:1,0',
+            'withDelivery' => 'in:1,0'
         ]);
         $loads = [];
         if ($request->get('withCliente')) {
@@ -90,6 +92,9 @@ class CarritoController extends Controller
         }
         if ($request->get('withMesa')) {
             $loads[] = Carrito::RELACION_MESA;
+        }
+        if ($request->get('withDelivery')) {
+            $loads[] = Carrito::RELACION_DELIVERY;
         }
         if ($query instanceof Builder) {
             $query->with($loads);
@@ -138,11 +143,18 @@ class CarritoController extends Controller
             'productosIdQuita.*' => 'numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
             'mesaId' => 'nullable|numeric|exists:' . Mesa::class . ',' . Mesa::COLUMNA_ID,
             'clienteId' => 'nullable|numeric|exists:' . Mesa::class . ',' . Mesa::COLUMNA_ID,
+            'producto_delivery_id' => 'numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
             'is_delivery' => 'in:1,0',
             'pagado' => 'in:1,0',
             'cambiosEstados' => 'array',
             'cambiosEstados.*.id' => 'numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
-            'cambiosEstados.*.estado' => 'in:' . join(',',CarritoProducto::ESTADOS_ADMITIDOS_ORDEN)
+            'cambiosEstados.*.estado' => 'in:' . join(',',CarritoProducto::ESTADOS_ADMITIDOS_ORDEN),
+            'productos' => 'array',
+            'productos.*.carrito_producto_id' => 'required_without:productos.*.producto_id|numeric|exists:' . CarritoProducto::class . ',' . CarritoProducto::COLUMNA_ID,
+            'productos.*.producto_id' => 'required_without:productos.*.carrito_producto_id|numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
+            'productos.*.cantidad' => 'numeric|min:1',
+            'productos.*.estado' => 'in:' . join(',',CarritoProducto::ESTADOS_ADMITIDOS_ORDEN),
+            'productos.*.borrar' => 'in:1,0',
         ]);
         if (!$carrito->isActivo) {
             throw ExceptionSystem::createException('El carrito ya no esta disponible para su modificacion', 'carritoNoDispo', 'Carrito no disponible', Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -176,6 +188,21 @@ class CarritoController extends Controller
                 $carrito->cliente()->dissociate();
             }
         }
+        if ($request->has('producto_delivery_id')) {
+            if ($previamentePagado) {
+                throw ExceptionSystem::createExceptionInput('producto_delivery_id',['Ya no se pueden modificar luego de haber pagado']);
+            }
+            if ($producto_delivery_id = $request->get('producto_delivery_id')) {
+                $producto = Producto::findOrFail($producto_delivery_id);
+                if ($producto->tipoProducto->code === TipoProducto::TIPO_PRODUCTO_DELIVERY) {
+                    $carrito->delivery()->associate($producto);
+                } else {
+                    throw ExceptionSystem::createExceptionInput('producto_delivery_id',['El producto ' . $producto->nombre . ' no es del tipo delivery']);
+                }
+            } else {
+                $carrito->delivery()->dissociate();
+            }
+        }
         if ($request->has('is_delivery')) {
             if ($previamentePagado) {
                 throw ExceptionSystem::createExceptionInput('is_delivery',['Ya no se pueden modificar luego de haber pagado']);
@@ -191,6 +218,60 @@ class CarritoController extends Controller
         }
         //Antes de agregar los productos nos aseguramos que el carrito este guardado
         $carrito->save();
+        if (($productos = $request->get('productos')) && count($productos)) {
+            foreach ($productos as $prodModif) {
+                $carrito_producto_id = array_key_exists('carrito_producto_id',$prodModif) ? $prodModif['carrito_producto_id'] : null;
+                $borrar = array_key_exists('borrar', $prodModif) ? $prodModif['borrar'] : null;
+                $producto_id = array_key_exists('producto_id', $prodModif) ? $prodModif['producto_id'] : null;
+                $cantidad = array_key_exists('cantidad', $prodModif) ? $prodModif['cantidad'] : null;
+                $estado = array_key_exists('estado', $prodModif) ? $prodModif['estado'] : null;
+                /** @var CarritoProducto|null $carritoProducto */
+                $carritoProducto = $carrito_producto_id ? CarritoProducto::query()->find($carrito_producto_id) : null;
+                if ($carrito_producto_id && (!$carritoProducto || $carritoProducto->carrito_id != $carrito->id)) {
+                    throw ExceptionSystem::createExceptionInput('productos',['El `carrito_producto` no existe o no se corresponde']);
+                }
+                if ($borrar) {
+                    if ($previamentePagado) {
+                        throw ExceptionSystem::createExceptionInput('productos',['Ya no se pueden modificar luego de haber pagado']);
+                    } else if (!$carritoProducto) {
+                        throw ExceptionSystem::createExceptionInput('productos',['El carrito producto que se quiere borrar ya no existe']);
+                    } else if ($carritoProducto->isActivo) {
+                        throw ExceptionSystem::createExceptionInput('productos',['Id: ' . $carrito_producto_id . ' ya no esta en estado ' . CarritoProducto::ESTADO_PENDIENTE . ', no se puede quitar']);
+                    } else {
+                        $carritoProducto->delete();
+                    }
+                } else {
+                    if ($producto_id) {     // se desea agregar
+                        if ($previamentePagado) {
+                            throw ExceptionSystem::createExceptionInput('productos',['Ya no se pueden modificar luego de haber pagado']);
+                        } else {
+                            $carrito->agregarProducto($producto_id, $cantidad?:1, $estado?: CarritoProducto::ESTADO_PENDIENTE);
+                        }
+                    } else {    // se desea modificar
+                        if (!$carritoProducto) {
+                            throw ExceptionSystem::createExceptionInput('productos',['No se puede modificar un producto que no existe']);
+                        } else if ($previamentePagado && $cantidad) {
+                            throw ExceptionSystem::createExceptionInput('productos',['Ya no se puede modificar la cantidad una vez pagado']);
+                        } else if ($carritoProducto->isActivo && $cantidad) {
+                            throw ExceptionSystem::createExceptionInput('productos',['Ya no se puede modificar la cantidad una vez que ya fue procesado']);
+                        } else {
+                            try {
+                                if ($estado) {
+                                    $carritoProducto->estado = $estado;
+                                } else if ($cantidad) {
+                                    $carritoProducto->cantidad = $cantidad;
+                                }
+                                $carritoProducto->save();
+                            } catch (ExceptionCarritoProductoState $e) {
+                                $e->setInput('productos');
+                                throw $e;
+                            }
+                            $carritoProducto->save();
+                        }
+                    }
+                }
+            }
+        }
         if (($productosIdQuita = $request->get('productosIdQuita')) && count($productosIdQuita)) {
             if ($previamentePagado) {
                 throw ExceptionSystem::createExceptionInput('productosIdQuita',['Ya no se pueden modificar luego de haber pagado']);
@@ -215,7 +296,8 @@ class CarritoController extends Controller
                 $carrito->productos()->attach($productoAgrega, [
                     CarritoProducto::COLUMNA_COSTO => $productoAgrega->costo,
                     CarritoProducto::COLUMNA_PRECIO => $productoAgrega->precio,
-                    CarritoProducto::COLUMNA_ESTADO => CarritoProducto::ESTADO_PENDIENTE
+                    CarritoProducto::COLUMNA_ESTADO => CarritoProducto::ESTADO_PENDIENTE,
+                    CarritoProducto::COLUMNA_CANTIDAD => 1
                 ]);
             }
         }

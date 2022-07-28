@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
  * @property boolean $isActivo
  * @see CarritoProducto::getIsActivoAttribute()
  * @property integer|false $posicionEstado
+ * @property mixed $cantidad
+ * @property mixed $carrito_id
  * @see CarritoProducto::getPosicionEstadoAttribute()
  */
 class CarritoProducto extends ModelRoot
@@ -27,6 +29,7 @@ class CarritoProducto extends ModelRoot
     const COLUMNA_ID = 'id';
     const COLUMNA_CARRITO_ID = 'carrito_id';
     const COLUMNA_PRODUCTO_ID = 'producto_id';
+    const COLUMNA_CANTIDAD = 'cantidad';
     const COLUMNA_ESTADO = 'estado';
     const COLUMNA_PRECIO = 'precio';
     const COLUMNA_COSTO = 'costo';

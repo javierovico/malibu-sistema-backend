@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
@@ -20,6 +21,7 @@ use Illuminate\Support\Collection;
  * @property mixed $is_delivery
  * @property boolean $pagado
  * @property Collection $productos
+ * @property mixed $id
  */
 class Carrito extends ModelRoot
 {
@@ -30,6 +32,7 @@ class Carrito extends ModelRoot
     const COLUMNA_ID = 'id';
     const COLUMNA_CLIENTE_ID = 'cliente_id';
     const COLUMNA_MOZO_ID = 'mozo_id';
+    const COLUMNA_PRODUCTO_DELIVERY_ID = 'producto_delivery_id';
     const COLUMNA_FECHA_CREACION = 'fecha_creacion';
     const COLUMNA_PAGADO = 'pagado';
     const COLUMNA_MESA_ID = 'mesa_id';
@@ -62,6 +65,7 @@ class Carrito extends ModelRoot
     const RELACION_CLIENTE = 'cliente';
     const RELACION_MOZO = 'mozo';
     const RELACION_PRODUCTOS = 'productos';
+    const RELACION_DELIVERY = 'delivery';
 
     /**
      * Crea sin guardar en la base de datos
@@ -91,6 +95,7 @@ class Carrito extends ModelRoot
             ->withPivot([
                 CarritoProducto::COLUMNA_ID,
                 CarritoProducto::COLUMNA_ESTADO,
+                CarritoProducto::COLUMNA_CANTIDAD,
                 CarritoProducto::COLUMNA_PRECIO,
                 CarritoProducto::COLUMNA_COSTO,
             ])
@@ -106,6 +111,11 @@ class Carrito extends ModelRoot
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class, self::COLUMNA_CLIENTE_ID, Cliente::COLUMNA_ID);
+    }
+
+    public function delivery(): BelongsTo
+    {
+        return $this->belongsTo(Producto::class, self::COLUMNA_PRODUCTO_DELIVERY_ID, Producto::COLUMNA_ID);
     }
 
     public function mozo(): BelongsTo
@@ -139,6 +149,25 @@ class Carrito extends ModelRoot
     public function getProductoExistenteInCarrito($idProducto): ?Producto
     {
         return $this->productos->first(fn(Producto $p) => $p->id == $idProducto);
+    }
+
+    /**
+     * @param $producto int|Producto
+     * @return void
+     */
+    public function agregarProducto($producto, $cantidad = 1, $estado = CarritoProducto::ESTADO_PENDIENTE)
+    {
+        if (!$producto instanceof Producto) {
+            $productoAgrega = Producto::findOrFail($producto);
+        } else {
+            $productoAgrega = $producto;
+        }
+        $this->productos()->attach($productoAgrega, [
+            CarritoProducto::COLUMNA_COSTO => $productoAgrega->costo,
+            CarritoProducto::COLUMNA_PRECIO => $productoAgrega->precio,
+            CarritoProducto::COLUMNA_ESTADO => $estado,
+            CarritoProducto::COLUMNA_CANTIDAD => $cantidad
+        ]);
     }
 
 }

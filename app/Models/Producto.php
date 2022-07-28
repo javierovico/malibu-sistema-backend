@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property CarritoProducto $carritoProducto
  * @see Producto::getCarritoProductoAttribute()
  * @property Pivot $pivot
+ * @property TipoProducto $tipoProducto
  * @see Producto::getUrlAttribute()
  * @method static self find(mixed $idAgrega)
  * @method static self findOrFail(mixed $idAgrega)

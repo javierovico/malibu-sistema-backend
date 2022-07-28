@@ -3,6 +3,7 @@
 use App\Models\Carrito;
 use App\Models\Cliente;
 use App\Models\Mesa;
+use App\Models\Producto;
 use App\Models\Usuario;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -21,6 +22,7 @@ class CreateCarritosTable extends Migration
             $table->id(Carrito::COLUMNA_ID);
             $table->foreignId(Carrito::COLUMNA_CLIENTE_ID)->nullable()->references(Cliente::COLUMNA_ID)->on(Cliente::tableName)->nullOnDelete();
             $table->foreignId(Carrito::COLUMNA_MOZO_ID)->references(Usuario::COLUMNA_ID)->on(Usuario::tableName);   // no se puede borrar el mozo
+            $table->foreignId(Carrito::COLUMNA_PRODUCTO_DELIVERY_ID)->nullable()->references(Producto::COLUMNA_ID)->on(Producto::tableName);   // no se puede borrar el producto de delivery
             $table->foreignId(Carrito::COLUMNA_MESA_ID)->nullable()->references(Mesa::COLUMNA_ID)->on(Mesa::tableName)->nullOnDelete();
             $table->string(Carrito::COLUMNA_STATUS, 30);
             $table->dateTime(Carrito::COLUMNA_FECHA_CREACION);

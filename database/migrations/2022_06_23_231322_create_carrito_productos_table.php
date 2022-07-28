@@ -20,6 +20,7 @@ class CreateCarritoProductosTable extends Migration
             $table->id(CarritoProducto::COLUMNA_ID);
             $table->foreignId(CarritoProducto::COLUMNA_CARRITO_ID)->references(Carrito::COLUMNA_ID)->on(Carrito::tableName)->cascadeOnDelete();
             $table->foreignId(CarritoProducto::COLUMNA_PRODUCTO_ID)->references(Producto::COLUMNA_ID)->on(Producto::tableName)->cascadeOnDelete();
+            $table->tinyInteger(CarritoProducto::COLUMNA_CANTIDAD);
             $table->string(CarritoProducto::COLUMNA_ESTADO,50);
             $table->unsignedInteger(CarritoProducto::COLUMNA_PRECIO);
             $table->unsignedInteger(CarritoProducto::COLUMNA_COSTO);
