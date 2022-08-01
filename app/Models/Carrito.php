@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 /**
@@ -35,18 +36,21 @@ class Carrito extends ModelRoot
     const COLUMNA_PRODUCTO_DELIVERY_ID = 'producto_delivery_id';
     const COLUMNA_FECHA_CREACION = 'fecha_creacion';
     const COLUMNA_PAGADO = 'pagado';
+    const COLUMNA_ENTREGADO = 'entregado';
     const COLUMNA_MESA_ID = 'mesa_id';
     const COLUMNA_IS_DELIVERY = 'is_delivery';
     const COLUMNA_STATUS = 'status';
 
     protected $attributes = [
         self::COLUMNA_PAGADO => '0',
+        self::COLUMNA_ENTREGADO => '0',
         self::COLUMNA_IS_DELIVERY => '0',
         self::COLUMNA_STATUS => self::ESTADO_CREADO,
     ];
 
     protected $casts = [
         self::COLUMNA_PAGADO => 'boolean',
+        self::COLUMNA_ENTREGADO => 'boolean',
         self::COLUMNA_IS_DELIVERY => 'boolean'
     ];
 
@@ -65,7 +69,8 @@ class Carrito extends ModelRoot
     const RELACION_CLIENTE = 'cliente';
     const RELACION_MOZO = 'mozo';
     const RELACION_PRODUCTOS = 'productos';
-    const RELACION_DELIVERY = 'delivery';
+    const RELACION_CARRITO_PRODUCTOS = 'carritoProductos';
+//    const RELACION_DELIVERY = 'delivery';
 
     /**
      * Crea sin guardar en la base de datos
@@ -113,10 +118,10 @@ class Carrito extends ModelRoot
         return $this->belongsTo(Cliente::class, self::COLUMNA_CLIENTE_ID, Cliente::COLUMNA_ID);
     }
 
-    public function delivery(): BelongsTo
-    {
-        return $this->belongsTo(Producto::class, self::COLUMNA_PRODUCTO_DELIVERY_ID, Producto::COLUMNA_ID);
-    }
+//    public function delivery(): BelongsTo
+//    {
+//        return $this->belongsTo(Producto::class, self::COLUMNA_PRODUCTO_DELIVERY_ID, Producto::COLUMNA_ID);
+//    }
 
     public function mozo(): BelongsTo
     {
@@ -168,6 +173,38 @@ class Carrito extends ModelRoot
             CarritoProducto::COLUMNA_ESTADO => $estado,
             CarritoProducto::COLUMNA_CANTIDAD => $cantidad
         ]);
+    }
+
+    /**
+     * Quita todos los productos de delivery del carrito
+     * @return void
+     */
+    public function quitarDelivery()
+    {
+        $this
+            ->carritoProductos()
+            ->whereHas(CarritoProducto::RELACION_PRODUCTO . '.' . Producto::RELACION_TIPO_PRODUCTO, fn(Builder $q) => $q->where(TipoProducto::COLUMNA_CODE, TipoProducto::TIPO_PRODUCTO_DELIVERY))
+            ->delete()
+        ;
+    }
+
+    /**
+     * Primero borra todos los productos de tipo delivery asignado
+     * luego asigna el producto delivery (se supone ya que la validacion del producto se hizo previmanete)
+     * @param Producto $producto
+     * @return void
+     */
+    public function asignarDelivery(Producto $producto)
+    {
+        // Primero borra todos los productos delivery previos
+        $this->quitarDelivery();
+        // Agrega el nuevo producto de delivery con estado finalizado
+        $this->agregarProducto($producto, 1, CarritoProducto::ESTADO_FINALIZADO);
+    }
+
+    public function carritoProductos(): HasMany
+    {
+        return $this->hasMany(CarritoProducto::class, CarritoProducto::COLUMNA_CARRITO_ID, self::COLUMNA_ID);
     }
 
 }

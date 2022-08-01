@@ -47,7 +47,7 @@ class ProductoController extends Controller
         //ordenamiento
         if (($ordenes = $request->get('sortByList')) && ($ordenes = json_decode($ordenes,true)) && is_array($ordenes)) {
             if (array_key_exists('tipoProducto',$ordenes) && ($item = $ordenes['tipoProducto'])) {
-                $query->orderBy(Producto::COLUMNA_TIPO_PRODUCTO, $item == 'descend' ? 'desc' : 'asc');
+                $query->orderBy(Producto::COLUMNA_TIPO_PRODUCTO_ID, $item == 'descend' ? 'desc' : 'asc');
             }
             if (array_key_exists('precio',$ordenes) && ($item = $ordenes['precio'])) {
                 $query->orderBy(Producto::COLUMNA_PRECIO, $item == 'descend' ? 'desc' : 'asc');

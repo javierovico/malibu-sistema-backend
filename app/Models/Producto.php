@@ -34,7 +34,7 @@ class Producto extends ModelRoot
     protected $primaryKey = self::COLUMNA_ID;
 
     const COLUMNA_ID = 'id';
-    const COLUMNA_TIPO_PRODUCTO = 'tipo_producto_id';
+    const COLUMNA_TIPO_PRODUCTO_ID = 'tipo_producto_id';
     const COLUMNA_CODIGO = 'codigo';
     const COLUMNA_STOCK = 'stock';
     const COLUMNA_NOMBRE = 'nombre';
@@ -103,7 +103,7 @@ class Producto extends ModelRoot
 
     public function tipoProducto(): BelongsTo
     {
-        return $this->belongsTo(TipoProducto::class, self::COLUMNA_TIPO_PRODUCTO);
+        return $this->belongsTo(TipoProducto::class, self::COLUMNA_TIPO_PRODUCTO_ID);
     }
 
     public function productoCombos(): BelongsToMany

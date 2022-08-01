@@ -78,7 +78,7 @@ class CarritoController extends Controller
             'withMozo' => 'in:1,0',
             'withProductos' => 'in:1,0',
             'withMesa' => 'in:1,0',
-            'withDelivery' => 'in:1,0'
+//            'withDelivery' => 'in:1,0'
         ]);
         $loads = [];
         if ($request->get('withCliente')) {
@@ -93,9 +93,9 @@ class CarritoController extends Controller
         if ($request->get('withMesa')) {
             $loads[] = Carrito::RELACION_MESA;
         }
-        if ($request->get('withDelivery')) {
-            $loads[] = Carrito::RELACION_DELIVERY;
-        }
+//        if ($request->get('withDelivery')) {
+//            $loads[] = Carrito::RELACION_DELIVERY;
+//        }
         if ($query instanceof Builder) {
             $query->with($loads);
         } else if ($query instanceof Carrito) {
@@ -195,12 +195,12 @@ class CarritoController extends Controller
             if ($producto_delivery_id = $request->get('producto_delivery_id')) {
                 $producto = Producto::findOrFail($producto_delivery_id);
                 if ($producto->tipoProducto->code === TipoProducto::TIPO_PRODUCTO_DELIVERY) {
-                    $carrito->delivery()->associate($producto);
+                    $carrito->asignarDelivery($producto);
                 } else {
                     throw ExceptionSystem::createExceptionInput('producto_delivery_id',['El producto ' . $producto->nombre . ' no es del tipo delivery']);
                 }
             } else {
-                $carrito->delivery()->dissociate();
+                $carrito->quitarDelivery();
             }
         }
         if ($request->has('is_delivery')) {

@@ -18,7 +18,7 @@ class CreateProductosTable extends Migration
     {
         Schema::connection(Producto::CONNECTION_DB)->create(Producto::tableName, function (Blueprint $table) {
             $table->id(Producto::COLUMNA_ID);
-            $table->foreignId(Producto::COLUMNA_TIPO_PRODUCTO)->references(TipoProducto::COLUMNA_ID)->on(TipoProducto::tableName)->cascadeOnDelete();
+            $table->foreignId(Producto::COLUMNA_TIPO_PRODUCTO_ID)->references(TipoProducto::COLUMNA_ID)->on(TipoProducto::tableName)->cascadeOnDelete();
             $table->foreignId(Producto::COLUMNA_ARCHIVO_ID)->nullable()->references(Archivo::COLUMNA_ID)->on(Archivo::tableName)->nullOnDelete();
             $table->string(Producto::COLUMNA_CODIGO, 100)->unique();
             $table->boolean(Producto::COLUMNA_STOCK)->index();

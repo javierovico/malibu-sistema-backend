@@ -6,6 +6,7 @@ use App\Exceptions\ExceptionCarritoProductoState;
 use App\Exceptions\ExceptionSystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -48,7 +49,15 @@ class CarritoProducto extends ModelRoot
 
     const ESTADOS_ACTIVOS = [
         self::ESTADO_PREPARACION,
+        self::ESTADO_FINALIZADO,
     ];
+
+    const RELACION_PRODUCTO = 'producto';
+
+    public function producto(): HasOne
+    {
+        return $this->hasOne(Producto::class, self::COLUMNA_PRODUCTO_ID, Producto::COLUMNA_ID);
+    }
 
     /**
      * Retorna la posicion del estado en el array ESTADOS_ADMITIDOS_ORDEN
