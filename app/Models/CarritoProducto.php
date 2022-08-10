@@ -6,6 +6,7 @@ use App\Exceptions\ExceptionCarritoProductoState;
 use App\Exceptions\ExceptionSystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -54,9 +55,9 @@ class CarritoProducto extends ModelRoot
 
     const RELACION_PRODUCTO = 'producto';
 
-    public function producto(): HasOne
+    public function producto(): BelongsTo
     {
-        return $this->hasOne(Producto::class, self::COLUMNA_PRODUCTO_ID, Producto::COLUMNA_ID);
+        return $this->belongsTo(Producto::class, self::COLUMNA_PRODUCTO_ID, Producto::COLUMNA_ID);
     }
 
     /**

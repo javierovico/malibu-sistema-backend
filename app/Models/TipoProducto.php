@@ -20,6 +20,15 @@ class TipoProducto extends ModelRoot
     const TIPO_PRODUCTO_COMBO = 'combo';
     const TIPO_PRODUCTO_DELIVERY = 'delivery';
 
+    /**
+     * Describe los tipos de productos que son para el consumo (los que se deberian mostrar)
+     * Nota: Solo delivery no esta formando parte
+     */
+    const TIPOS_PRODUCTO_CONSUMO = [
+        self::TIPO_PRODUCTO_SIMPLE,
+        self::TIPO_PRODUCTO_COMBO,
+    ];
+
     const TIPOS_PRODUCTO = [
         self::TIPO_PRODUCTO_SIMPLE => [
             self::COLUMNA_DESCRIPCION => 'Producto simple'

@@ -94,7 +94,7 @@ class CarritoController extends Controller
             $loads[] = Carrito::RELACION_MESA;
         }
 //        if ($request->get('withDelivery')) {
-//            $loads[] = Carrito::RELACION_DELIVERY;
+//            $loads[] = Carrito::APPEND_DELIVERY;
 //        }
         if ($query instanceof Builder) {
             $query->with($loads);
@@ -143,7 +143,7 @@ class CarritoController extends Controller
             'productosIdQuita.*' => 'numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
             'mesaId' => 'nullable|numeric|exists:' . Mesa::class . ',' . Mesa::COLUMNA_ID,
             'clienteId' => 'nullable|numeric|exists:' . Mesa::class . ',' . Mesa::COLUMNA_ID,
-            'producto_delivery_id' => 'numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
+            'producto_delivery_id' => 'nullable|numeric|exists:' . Producto::class . ',' . Producto::COLUMNA_ID,
             'is_delivery' => 'in:1,0',
             'pagado' => 'in:1,0',
             'cambiosEstados' => 'array',
@@ -208,6 +208,9 @@ class CarritoController extends Controller
                 throw ExceptionSystem::createExceptionInput('is_delivery',['Ya no se pueden modificar luego de haber pagado']);
             }
             $carrito->is_delivery = !!$request->get('is_delivery');
+            if (!$carrito->is_delivery) {
+                $carrito->quitarDelivery();
+            }
         }
         if ($carrito->fresh()) {  //si ya existia
             if ($carrito->pagado) {

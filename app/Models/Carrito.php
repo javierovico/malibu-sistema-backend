@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 /**
@@ -23,6 +24,7 @@ use Illuminate\Support\Collection;
  * @property boolean $pagado
  * @property Collection $productos
  * @property mixed $id
+ * @property Producto $delivery
  */
 class Carrito extends ModelRoot
 {
@@ -33,7 +35,6 @@ class Carrito extends ModelRoot
     const COLUMNA_ID = 'id';
     const COLUMNA_CLIENTE_ID = 'cliente_id';
     const COLUMNA_MOZO_ID = 'mozo_id';
-    const COLUMNA_PRODUCTO_DELIVERY_ID = 'producto_delivery_id';
     const COLUMNA_FECHA_CREACION = 'fecha_creacion';
     const COLUMNA_PAGADO = 'pagado';
     const COLUMNA_ENTREGADO = 'entregado';
@@ -68,9 +69,11 @@ class Carrito extends ModelRoot
     const RELACION_MESA = 'mesa';
     const RELACION_CLIENTE = 'cliente';
     const RELACION_MOZO = 'mozo';
+    const RELACION_PRODUCTOS_CRUDO = 'productosCrudo';
     const RELACION_PRODUCTOS = 'productos';
     const RELACION_CARRITO_PRODUCTOS = 'carritoProductos';
-//    const RELACION_DELIVERY = 'delivery';
+
+    const APPEND_DELIVERY = 'delivery';
 
     /**
      * Crea sin guardar en la base de datos
@@ -93,7 +96,10 @@ class Carrito extends ModelRoot
         return $carrito;
     }
 
-    public function productos(): BelongsToMany
+    /**
+     * Describe la relacion de todos los productos que forman parte del carrito (incluido deliverys)
+     */
+    public function productosCrudo(): BelongsToMany
     {
         return $this
             ->belongsToMany(Producto::class,CarritoProducto::tableName, CarritoProducto::COLUMNA_CARRITO_ID, CarritoProducto::COLUMNA_PRODUCTO_ID)
@@ -105,6 +111,21 @@ class Carrito extends ModelRoot
                 CarritoProducto::COLUMNA_COSTO,
             ])
             ->withTimestamps()
+            ;
+    }
+
+    public function productos(): BelongsToMany
+    {
+        return $this->productosCrudo()
+//            ->whereHas(Producto::RELACION_TIPO_PRODUCTO,fn(Builder $q) => $q->whereIn(TipoProducto::COLUMNA_CODE,TipoProducto::TIPOS_PRODUCTO_CONSUMO))
+        ;
+    }
+
+    public function getDeliveryAttribute()
+    {
+        return $this->productosCrudo()
+            ->whereHas(Producto::RELACION_TIPO_PRODUCTO,fn(Builder $q) => $q->where(TipoProducto::COLUMNA_CODE,TipoProducto::TIPO_PRODUCTO_DELIVERY))
+            ->first()
         ;
     }
 
