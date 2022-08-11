@@ -110,7 +110,8 @@ class CarritoController extends Controller
         ]);
         $query = Carrito::query();
         if ($request->get('soloActivos')) {
-            $query->whereIn(Carrito::COLUMNA_STATUS, Carrito::ESTADOS_ACTIVOS);
+            $query->where(Carrito::COLUMNA_FINALIZADO, 0);
+//            $query->whereIn(Carrito::COLUMNA_STATUS, Carrito::ESTADOS_ACTIVOS);
         }
         self::cargarRelaciones($request, $query);
         return paginate($query, $request);
@@ -155,6 +156,7 @@ class CarritoController extends Controller
             'productos.*.cantidad' => 'numeric|min:1',
             'productos.*.estado' => 'in:' . join(',',CarritoProducto::ESTADOS_ADMITIDOS_ORDEN),
             'productos.*.borrar' => 'in:1,0',
+            'finalizado' => 'in:1,0',
         ]);
         if (!$carrito->isActivo) {
             throw ExceptionSystem::createException('El carrito ya no esta disponible para su modificacion', 'carritoNoDispo', 'Carrito no disponible', Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -165,6 +167,9 @@ class CarritoController extends Controller
                 throw ExceptionSystem::createExceptionInput('pagado',['Ya no se pueden modificar luego de haber pagado']);
             }
             $carrito->pagado = !!$request->get('pagado');
+        }
+        if ($request->has('finalizado')) {      // a nivel de BackEnd no se verifica si los productos esta finalizados para finalizar el carrito
+            $carrito->finalizado = !!$request->get('finalizado');
         }
         if ($request->has('mesaId')) {      //si se tiene la mesa se prepara para agregar o quitar
             $mesa = ($mesaId = $request->get('mesaId')) ? Mesa::findOrFail($mesaId) : null;

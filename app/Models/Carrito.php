@@ -25,6 +25,7 @@ use Illuminate\Support\Collection;
  * @property Collection $productos
  * @property mixed $id
  * @property Producto $delivery
+ * @property mixed $finalizado
  */
 class Carrito extends ModelRoot
 {
@@ -38,6 +39,7 @@ class Carrito extends ModelRoot
     const COLUMNA_FECHA_CREACION = 'fecha_creacion';
     const COLUMNA_PAGADO = 'pagado';
     const COLUMNA_ENTREGADO = 'entregado';
+    const COLUMNA_FINALIZADO = 'finalizado';
     const COLUMNA_MESA_ID = 'mesa_id';
     const COLUMNA_IS_DELIVERY = 'is_delivery';
     const COLUMNA_STATUS = 'status';
@@ -45,6 +47,7 @@ class Carrito extends ModelRoot
     protected $attributes = [
         self::COLUMNA_PAGADO => '0',
         self::COLUMNA_ENTREGADO => '0',
+        self::COLUMNA_FINALIZADO => '0',
         self::COLUMNA_IS_DELIVERY => '0',
         self::COLUMNA_STATUS => self::ESTADO_CREADO,
     ];
@@ -52,6 +55,7 @@ class Carrito extends ModelRoot
     protected $casts = [
         self::COLUMNA_PAGADO => 'boolean',
         self::COLUMNA_ENTREGADO => 'boolean',
+        self::COLUMNA_FINALIZADO => 'boolean',
         self::COLUMNA_IS_DELIVERY => 'boolean'
     ];
 
@@ -169,7 +173,8 @@ class Carrito extends ModelRoot
 
     public function getIsActivoAttribute()
     {
-        return in_array($this->status, self::ESTADOS_ACTIVOS);
+        return !$this->finalizado;
+//        return in_array($this->status, self::ESTADOS_ACTIVOS);
     }
 
     public function getProductoExistenteInCarrito($idProducto): ?Producto

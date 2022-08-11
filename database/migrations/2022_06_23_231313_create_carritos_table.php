@@ -27,6 +27,7 @@ class CreateCarritosTable extends Migration
             $table->dateTime(Carrito::COLUMNA_FECHA_CREACION);
             $table->boolean(Carrito::COLUMNA_PAGADO);
             $table->boolean(Carrito::COLUMNA_ENTREGADO);
+            $table->boolean(Carrito::COLUMNA_FINALIZADO);
             $table->boolean(Carrito::COLUMNA_IS_DELIVERY);
             $table->timestamps();
         });
