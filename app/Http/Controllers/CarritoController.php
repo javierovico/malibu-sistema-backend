@@ -218,7 +218,9 @@ class CarritoController extends Controller
             }
         }
         if ($carrito->fresh()) {  //si ya existia
-            if ($carrito->pagado) {
+            if ($carrito->finalizado) {
+                $carrito->status = Carrito::ESTADO_FINALIZADO;
+            } else if($carrito->pagado) {
                 $carrito->status = Carrito::ESTADO_PAGADO;
             } else {
                 $carrito->status = Carrito::ESTADO_MODIFICADO;

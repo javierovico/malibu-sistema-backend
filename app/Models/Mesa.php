@@ -37,7 +37,7 @@ class Mesa extends ModelRoot
     public function carritoActivo(): HasOne
     {
         return $this->hasOne(Carrito::class, Carrito::COLUMNA_MESA_ID, self::COLUMNA_ID)
-            ->where(Carrito::COLUMNA_STATUS, '<>',Carrito::ESTADO_FINALIZADO)
+            ->where(Carrito::COLUMNA_FINALIZADO, '0')
             ->latestOfMany(Carrito::COLUMNA_ID);
     }
 
