@@ -89,6 +89,7 @@ class CarritoController extends Controller
         }
         if ($request->get('withProductos')) {
             $loads[] = Carrito::RELACION_PRODUCTOS . '.' . Producto::RELACION_TIPO_PRODUCTO;
+            $loads[] = Carrito::RELACION_PRODUCTOS . '.' . Producto::RELACION_IMAGEN;
         }
         if ($request->get('withMesa')) {
             $loads[] = Carrito::RELACION_MESA;
