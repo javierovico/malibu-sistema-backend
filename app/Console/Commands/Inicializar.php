@@ -57,6 +57,7 @@ class Inicializar extends Command
         /** */
         $usuario = Usuario::nuevoUsuario('operador', 'operador');
         $usuario->asignarRol(Rol::ROL_OPERADOR);
+        $usuario->asignarRol(Rol::ROL_COCINERO);
         /** */
         $usuario = Usuario::nuevoUsuario('operador2', 'operador2');
         $usuario->asignarRol(Rol::ROL_OPERADOR);
